@@ -47,7 +47,7 @@ public:
     void pushEOF();
     void checkID();
 
-    void printTokens();
+    string printTokens();
 
 };
 

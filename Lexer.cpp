@@ -368,9 +368,20 @@ void Lexer::checkID() {
         pushID(str);
 }
 
-void Lexer::printTokens() {
+string Lexer::printTokens() {
+    string str;
     for (long unsigned int i = 0; i < tokenVector.size(); i++) {
-        cout << "(" << tokenVector[i].getType() << "," << tokenVector[i].getValue() << "," << tokenVector[i].getLine() << ")" << endl;
+        str += "(";
+        str += tokenVector[i].getType();
+        str += ",";
+        str += tokenVector[i].getValue();
+        str += ",";
+        str += tokenVector[i].getLine();
+        str += ")";
+        str += "\n";
     }
-    cout << "Total Tokens = " << totalTokens << endl;
+    str += "Total Tokens = ";
+    str += totalTokens;
+    str += "\n";
+    return str;
 }
