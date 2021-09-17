@@ -7,15 +7,15 @@ Lexer::Lexer() {
 }
 
 Lexer::~Lexer() {
-    
+
 }
 
 void Lexer::CreateAutomata() {
-    
+
 }
 
 void Lexer::Run(string filename) {
-    
+
     lineNumber = 1;
     totalTokens = 0;
     myfile.open(filename);
@@ -82,7 +82,7 @@ void Lexer::Run(string filename) {
                 }
                 else {
                     string str;
-                    str =+ currentLetter;
+                    str = +currentLetter;
                     pushUndefined(str, lineNumber);
                     currentLetter = myfile.get();
                 }
@@ -90,7 +90,7 @@ void Lexer::Run(string filename) {
 
         }
     }
-        
+
 
 }
 
@@ -146,14 +146,14 @@ void Lexer::colonOrColonDash() {
         str = ":-";
         currentLetter = myfile.get();
     }
-    
+
     if (str == ":") {
         pushColon();
     }
     if (str == ":-") {
         pushColonDash();
     }
-    
+
 }
 
 void Lexer::pushColon() {
@@ -221,7 +221,7 @@ void Lexer::pushRules() {
 
 void Lexer::pushQueries() {
     Token t;
-    t.setType("Queries");
+    t.setType("QUERIES");
     t.setValue("\"Queries\"");
     t.setLine(lineNumber);
     tokenVector.push_back(t);
@@ -244,7 +244,7 @@ void Lexer::blockOrNormalComment() {
         currentLetter = myfile.get();
         currentLetter = myfile.get();
         string str = "#|";
-        while (currentLetter + myfile.peek() != ('|' + '#')) {
+        while (!((currentLetter == '|') && (myfile.peek() == '#'))) {
             if (currentLetter == '\n') {
                 lineNumber++;
             }
@@ -255,7 +255,7 @@ void Lexer::blockOrNormalComment() {
             str += currentLetter;
             currentLetter = myfile.get();
         }
-        str += "#";
+        str += "|#";
         currentLetter = myfile.get();
         pushComment(str, skippedLines);
     }
@@ -318,8 +318,8 @@ void Lexer::pushString() {
                 }
             }
         }
-       
-        
+
+
     }
     str += "\'";
     Token t;
@@ -335,7 +335,7 @@ void Lexer::pushUndefined(string undefined, int startingLine) {
     Token t;
     string valuestring = "\"" + undefined + "\"";
     t.setType("UNDEFINED");
-     t.setValue(valuestring);
+    t.setValue(valuestring);
     t.setLine(startingLine);
     tokenVector.push_back(t);
     totalTokens = totalTokens + 1;
@@ -381,7 +381,6 @@ string Lexer::printTokens() {
         str += "\n";
     }
     str += "Total Tokens = ";
-    str += totalTokens;
-    str += "\n";
+    str += to_string(totalTokens);
     return str;
 }

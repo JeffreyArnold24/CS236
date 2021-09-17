@@ -19,7 +19,7 @@ public:
     ~Lexer();
 
     void Run(string);
-    
+
     int lineNumber;
     int totalTokens;
     fstream myfile;
@@ -52,4 +52,3 @@ public:
 };
 
 #endif // LEXER_H
-

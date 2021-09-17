@@ -13,7 +13,7 @@ void Token::setLine(int line) {
 	lineNumber = line;
 }
 
-string Token::getType(){
+string Token::getType() {
 	return type;
 }
 
@@ -21,6 +21,7 @@ string Token::getValue() {
 	return tokenName;
 }
 
-int Token::getLine() {
-	return lineNumber;
+string Token::getLine() {
+	string str = to_string(lineNumber);
+	return str;
 }

@@ -18,8 +18,7 @@ public:
 
     string getType();
     string getValue();
-    int getLine();
+    string getLine();
 };
 
 #endif // TOKEN_H
-
