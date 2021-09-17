@@ -16,56 +16,124 @@ void Lexer::CreateAutomata() {
 
 void Lexer::Run(string filename) {
 
-    lineNumber = 1;
+    lineNumber = 0;
     totalTokens = 0;
     myfile.open(filename);
-    currentLetter = myfile.get();
-    bool closeFile = false;
+    closeFile = false;
+    if (myfile.peek() != EOF) {
+        currentLetter = myfile.get();
+        lineNumber++;
+    }    
+    else {
+        closeFile = true;
+        pushEOF();
+    }
+    
     while (!closeFile) {
         if (isspace(currentLetter)) {
             if (currentLetter == '\n') {
                 lineNumber = lineNumber + 1;
             }
-            currentLetter = myfile.get();
+            if (myfile.peek() != EOF) {
+                currentLetter = myfile.get();
+            }
+            else {
+                pushEOF();
+                closeFile = true;
+            }
 
         }
         else {
             switch (currentLetter) {
             case',':
                 pushComma();
-                currentLetter = myfile.get();
+                if (myfile.peek() != EOF) {
+                    currentLetter = myfile.get();
+                }
+                else {
+                    pushEOF();
+                    closeFile = true;
+                }
                 break;
             case'.':
                 pushPeriod();
-                currentLetter = myfile.get();
+                if (myfile.peek() != EOF) {
+                    currentLetter = myfile.get();
+                }
+                else {
+                    pushEOF();
+                    closeFile = true;
+                }
                 break;
             case'?':
                 pushQMark();
-                currentLetter = myfile.get();
+                if (myfile.peek() != EOF) {
+                    currentLetter = myfile.get();
+                }
+                else {
+                    pushEOF();
+                    closeFile = true;
+                }
                 break;
             case'(':
                 pushLeftParen();
-                currentLetter = myfile.get();
+                if (myfile.peek() != EOF) {
+                    currentLetter = myfile.get();
+                }
+                else {
+                    pushEOF();
+                    closeFile = true;
+                }
                 break;
             case')':
                 pushRightParen();
-                currentLetter = myfile.get();
+                if (myfile.peek() != EOF) {
+                    currentLetter = myfile.get();
+                }
+                else {
+                    pushEOF();
+                    closeFile = true;
+                }
                 break;
             case':':
                 colonOrColonDash();
-                currentLetter = myfile.get();
+                if (myfile.peek() != EOF) {
+                    currentLetter = myfile.get();
+                }
+                else {
+                    pushEOF();
+                    closeFile = true;
+                }
                 break;
             case'*':
                 pushMultiply();
-                currentLetter = myfile.get();
+                if (myfile.peek() != EOF) {
+                    currentLetter = myfile.get();
+                }
+                else {
+                    pushEOF();
+                    closeFile = true;
+                }
                 break;
             case'+':
                 pushAdd();
-                currentLetter = myfile.get();
+                if (myfile.peek() != EOF) {
+                    currentLetter = myfile.get();
+                }
+                else {
+                    pushEOF();
+                    closeFile = true;
+                }
                 break;
             case'#':
                 blockOrNormalComment();
-                currentLetter = myfile.get();
+                if (myfile.peek() != EOF) {
+                    currentLetter = myfile.get();
+                }
+                else {
+                    pushEOF();
+                    closeFile = true;
+                }
                 break;
             case EOF:
                 pushEOF();
@@ -74,7 +142,13 @@ void Lexer::Run(string filename) {
                 break;
             case '\'':
                 pushString();
-                currentLetter = myfile.get();
+                if (myfile.peek() != EOF) {
+                    currentLetter = myfile.get();
+                }
+                else {
+                    pushEOF();
+                    closeFile = true;
+                }
                 break;
             default:
                 if (isalpha(currentLetter)) {
@@ -84,7 +158,13 @@ void Lexer::Run(string filename) {
                     string str;
                     str = +currentLetter;
                     pushUndefined(str, lineNumber);
-                    currentLetter = myfile.get();
+                    if (myfile.peek() != EOF) {
+                        currentLetter = myfile.get();
+                    }
+                    else {
+                        pushEOF();
+                        closeFile = true;
+                    }
                 }
             }
 
@@ -144,7 +224,14 @@ void Lexer::colonOrColonDash() {
     string str = ":";
     if (myfile.peek() == '-') {
         str = ":-";
-        currentLetter = myfile.get();
+        if (myfile.peek() != EOF) {
+            currentLetter = myfile.get();
+        }
+        else {
+            pushEOF();
+            closeFile = true;
+            return;
+        }
     }
 
     if (str == ":") {
@@ -241,14 +328,28 @@ void Lexer::pushID(string currentLetter) {
 void Lexer::blockOrNormalComment() {
     int skippedLines = lineNumber;
     if (myfile.peek() == '|') {
-        currentLetter = myfile.get();
-        currentLetter = myfile.get();
+        if (myfile.peek() != EOF) {
+            currentLetter = myfile.get();
+        }
+        else {
+            pushEOF();
+            closeFile = true;
+            return;
+        }
+        if (myfile.peek() != EOF) {
+            currentLetter = myfile.get();
+        }
+        else {
+            pushEOF();
+            closeFile = true;
+            return;
+        }
         string str = "#|";
         while (!((currentLetter == '|') && (myfile.peek() == '#'))) {
             if (currentLetter == '\n') {
                 lineNumber++;
             }
-            if (currentLetter == EOF) {
+            if (myfile.peek() == EOF) {
                 pushUndefined(str, skippedLines);
                 return;
             }
@@ -256,11 +357,25 @@ void Lexer::blockOrNormalComment() {
             currentLetter = myfile.get();
         }
         str += "|#";
-        currentLetter = myfile.get();
+        if (myfile.peek() != EOF) {
+            currentLetter = myfile.get();
+        }
+        else {
+            pushEOF();
+            closeFile = true;
+            return;
+        }
         pushComment(str, skippedLines);
     }
     else {
-        currentLetter = myfile.get();
+        if (myfile.peek() != EOF) {
+            currentLetter = myfile.get();
+        }
+        else {
+            pushEOF();
+            closeFile = true;
+            return;
+        }
         string str = "#";
         while (currentLetter != '\n') {
             str += currentLetter;
@@ -284,14 +399,35 @@ void Lexer::pushComment(string comment, int line) {
 void Lexer::pushString() {
     int skippedLines = lineNumber;
     string str = "\'";
-    currentLetter = myfile.get();
+    if (myfile.peek() != EOF) {
+        currentLetter = myfile.get();
+    }
+    else {
+        pushEOF();
+        closeFile = true;
+        return;
+    }
     bool endWhile = false;
     while (!endWhile) {
         if (currentLetter == '\'' && myfile.peek() == '\'') {
             str += currentLetter;
-            currentLetter = myfile.get();
+            if (myfile.peek() != EOF) {
+                currentLetter = myfile.get();
+            }
+            else {
+                pushEOF();
+                closeFile = true;
+                return;
+            }
             str += currentLetter;
-            currentLetter = myfile.get();
+            if (myfile.peek() != EOF) {
+                currentLetter = myfile.get();
+            }
+            else {
+                pushEOF();
+                closeFile = true;
+                return;
+            }
         }
         else {
             if (currentLetter == '\'') {
@@ -308,12 +444,26 @@ void Lexer::pushString() {
                     if (currentLetter == '\n') {
                         lineNumber++;
                         str += currentLetter;
-                        currentLetter = myfile.get();
+                        if (myfile.peek() != EOF) {
+                            currentLetter = myfile.get();
+                        }
+                        else {
+                            pushEOF();
+                            closeFile = true;
+                            return;
+                        }
 
                     }
                     else {
                         str += currentLetter;
-                        currentLetter = myfile.get();
+                        if (myfile.peek() != EOF) {
+                            currentLetter = myfile.get();
+                        }
+                        else {
+                            pushEOF();
+                            closeFile = true;
+                            return;
+                        }
                     }
                 }
             }
@@ -347,6 +497,7 @@ void Lexer::pushEOF() {
     t.setValue("\"\"");
     t.setLine(lineNumber);
     tokenVector.push_back(t);
+    myfile.close();
     totalTokens++;
 }
 
@@ -382,5 +533,6 @@ string Lexer::printTokens() {
     }
     str += "Total Tokens = ";
     str += to_string(totalTokens);
+    str += '\n';
     return str;
 }

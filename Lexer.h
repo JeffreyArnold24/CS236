@@ -3,7 +3,7 @@
 #include <vector>
 #include "Token.h"
 #include <iostream>
-#include<fstream>
+#include<ifstream>
 using namespace std;
 
 class Lexer
@@ -19,6 +19,7 @@ public:
     ~Lexer();
 
     void Run(string);
+    bool closeFile;
 
     int lineNumber;
     int totalTokens;
