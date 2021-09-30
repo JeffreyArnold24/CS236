@@ -99,12 +99,14 @@ bool Parser::checkSchemes() {
 			return true;
 		}
 		if (str == "Rules") {
+			
 			myfile.close();
 			closeFile = true;
 			errorMessage("RULES", "Rules", line);
 			return false;
 		}
 		if (str == "Queries") {
+			
 			myfile.close();
 			closeFile = true;
 			errorMessage("QUERIES", "Queries", line);
@@ -129,6 +131,7 @@ bool Parser::checkSchemes() {
 				currentLetter = myfile.get();
 			}
 			ID += currentLetter;
+			line = newLine(line);
 			errorMessage("STRING", ID, line);
 			myfile.close();
 			closeFile = true;
@@ -224,6 +227,7 @@ bool Parser::checkFacts() {
 	}
 	currentLetter = myfile.get();
 	if (currentLetter != '.') {
+		line = newLine(line);
 		myfile.close();
 		closeFile = true;
 		errorMessage("Period", ".", line);
