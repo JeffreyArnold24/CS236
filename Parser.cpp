@@ -91,7 +91,7 @@ bool Parser::checkSchemes() {
 			if (!oneItem) {
 				myfile.close();
 				closeFile = true;
-				line = newLine(line);
+				line = line - 1;
 				errorMessage("FACTS", "Facts", line);
 				return false;
 			}
@@ -132,9 +132,7 @@ bool Parser::checkSchemes() {
 				currentLetter = myfile.get();
 			}
 			ID += currentLetter;
-			line = newLine(line);
-			line = newLine(line);
-			line = newLine(line);
+			line = line - 1;
 			errorMessage("STRING", ID, line);
 			myfile.close();
 			closeFile = true;
@@ -148,9 +146,7 @@ bool Parser::checkSchemes() {
 	if (ID == "") {
 		myfile.close();
 		closeFile = true;
-		line = newLine(line);
-		line = newLine(line);
-		line = newLine(line);
+		line = line - 1;
 		errorMessage("RIGHT_PAREN", ")", line);
 		return false;
 	}
@@ -191,8 +187,6 @@ bool Parser::checkFacts() {
 			return true;
 		}
 		if (str == "Queries") {
-			line = newLine(line);
-			line = newLine(line);
 			myfile.close();
 			closeFile = true;
 			errorMessage("QUERIES", "Queries", line);
