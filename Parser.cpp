@@ -689,7 +689,7 @@ string Parser::printTokens() {
 	string print = "";
 	string variableSubs = "";
 	bool matchingIDs = true;
-	for (int i = 0; i < Queries.size(); ++i) {
+	for (long unsigned int i = 0; i < Queries.size(); ++i) {
 		vector<string> variableSubsVector;
 		
 		print += Queries.at(i).getValue() += "(";
@@ -702,7 +702,7 @@ string Parser::printTokens() {
 				print += ")? ";
 			}
 		}
-		for (int j = 0; j < Facts.size(); ++j) {
+		for (long unsigned int j = 0; j < Facts.size(); ++j) {
 			matchingIDs = true;
 			if (Queries.at(i).getValue() == Facts.at(j).getValue()) {
 				for (int k = 0; k < Queries.at(i).numberIDs(); ++k) {
@@ -738,7 +738,7 @@ string Parser::printTokens() {
 			print += "Yes(";
 			print += to_string(variableSubsVector.size());
 			print += ")\n";
-			for (int j = 0; j < variableSubsVector.size(); ++j) {
+			for (long unsigned int j = 0; j < variableSubsVector.size(); ++j) {
 				if (variableSubsVector.at(j) != "  \n") {
 					print += variableSubsVector.at(j);
 				}
