@@ -719,10 +719,11 @@ string Parser::printTokens() {
 			}
 			if (matchingIDs) {
 				variableSubs = "  ";
+				bool matchingIDs = true;
 				string variableSubsInter = "";
 				for (int k = 0; k < Queries.at(i).numberIDs(); ++k) {
 					bool repeatedIDs = false;
-					bool matchingIDs = true;
+					
 					for (int n = k-1; n >= 0; n--) {
 						if (Queries.at(i).getID(k) == Queries.at(i).getID(n)) {
 							repeatedIDs = true;
@@ -731,13 +732,14 @@ string Parser::printTokens() {
 						
 					}
 					for (int n = 0; n < Queries.at(i).numberIDs(); n++) {
-						
+
 						if (Queries.at(i).getID(k) == Queries.at(i).getID(n)) {
 							if (Facts.at(j).getID(k) != Facts.at(j).getID(n)) {
 								matchingIDs = false;
 							}
 						}
 					}
+					
 					
 					if ((Queries.at(i).getID(k)[0] != '\'') && (!repeatedIDs) && (matchingIDs)) {
 						variableSubs += Queries.at(i).getID(k);
@@ -752,7 +754,7 @@ string Parser::printTokens() {
 					variableSubs.pop_back();
 				}
 				variableSubs += '\n';
-				if (variableSubsVector.size() == 0) {
+				if ((variableSubsVector.size() == 0) && (matchingIDs)) {
 					variableSubsVector.push_back(variableSubs);
 				}
 				bool matching = false;
@@ -761,7 +763,7 @@ string Parser::printTokens() {
 						matching = true;
 					}
 				}
-				if (!matching) {
+				if ((!matching) && (matchingIDs)) {
 					variableSubsVector.push_back(variableSubs);
 				}
 				
@@ -776,6 +778,7 @@ string Parser::printTokens() {
 				if (variableSubsVector.at(j) != "  \n") {
 					print += variableSubsVector.at(j);
 				}
+
 			}
 		}
 		else {
