@@ -703,6 +703,7 @@ string Parser::printTokens() {
 			}
 		}
 		for (long unsigned int j = 0; j < Facts.size(); ++j) {
+			vector<string> outputIDs;
 			matchingIDs = true;
 			if (Queries.at(i).getValue() == Facts.at(j).getValue()) {
 				for (int k = 0; k < Queries.at(i).numberIDs(); ++k) {
@@ -718,19 +719,52 @@ string Parser::printTokens() {
 			}
 			if (matchingIDs) {
 				variableSubs = "  ";
+				string variableSubsInter = "";
 				for (int k = 0; k < Queries.at(i).numberIDs(); ++k) {
-					if (Queries.at(i).getID(k)[0] != '\'') {
+					bool repeatedIDs = false;
+					bool matchingIDs = true;
+					for (int n = k-1; n >= 0; n--) {
+						if (Queries.at(i).getID(k) == Queries.at(i).getID(n)) {
+							repeatedIDs = true;
+							
+						}
+						
+					}
+					for (int n = 0; n < Queries.at(i).numberIDs(); n++) {
+						
+						if (Queries.at(i).getID(k) == Queries.at(i).getID(n)) {
+							if (Facts.at(j).getID(k) != Facts.at(j).getID(n)) {
+								matchingIDs = false;
+							}
+						}
+					}
+					
+					if ((Queries.at(i).getID(k)[0] != '\'') && (!repeatedIDs) && (matchingIDs)) {
 						variableSubs += Queries.at(i).getID(k);
 						variableSubs += "=";
 						variableSubs += Facts.at(j).getID(k);
 						variableSubs += ", ";
+						
 					}
-					
 				}
-				variableSubs.pop_back();
-				variableSubs.pop_back();
+				if (variableSubs != "  ") {
+					variableSubs.pop_back();
+					variableSubs.pop_back();
+				}
 				variableSubs += '\n';
-				variableSubsVector.push_back(variableSubs);
+				if (variableSubsVector.size() == 0) {
+					variableSubsVector.push_back(variableSubs);
+				}
+				bool matching = false;
+				for (long unsigned int m = 0; m < variableSubsVector.size(); ++m) {
+					if (variableSubsVector.at(m) == variableSubs) {
+						matching = true;
+					}
+				}
+				if (!matching) {
+					variableSubsVector.push_back(variableSubs);
+				}
+				
 			}	
 		}
 		if (variableSubsVector.size() > 0) {
