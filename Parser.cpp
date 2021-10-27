@@ -546,7 +546,7 @@ void Parser::readInput(string file) {
 					if (currentLetter == '\'') {
 						IDName += currentLetter;
 						currentLetter = myfile.get();
-						while (currentLetter != '\'') {
+						while ((currentLetter != '\'')) {
 							Tokens += currentLetter;
 							IDName += currentLetter;
 							currentLetter = myfile.get();
@@ -651,11 +651,14 @@ void Parser::readInput(string file) {
 							IDName = "";
 							if (currentLetter != ')') {
 								
-								IDName += currentLetter;
-								currentLetter = myfile.get();
-								while ((currentLetter != ',') && currentLetter != ')') {
+								if (!isspace(currentLetter)) {
 									IDName += currentLetter;
-									currentLetter = myfile.get();
+								}
+								currentLetter = myfile.get();
+								while ((currentLetter != ',') && (currentLetter != ')')) {
+									
+										IDName += currentLetter;
+										currentLetter = myfile.get();
 								}
 								currentLetter = myfile.get();
 								QuerieToken.addID(IDName);
