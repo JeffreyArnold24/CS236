@@ -1,6 +1,7 @@
 #pragma once
 #ifndef Parser_H
 #define Parser_H
+#include "Token.h"
 #include <string>
 #include <fstream>
 #include <vector>
@@ -33,10 +34,10 @@ public:
     string printError();
     void readInput(string);
     void comment();
-    vector<string> Schemes;
-    vector<string> Facts;
-    vector<string> Rules;
-    vector<string> Queries;
+    vector<Token> Schemes;
+    vector<Token> Facts;
+    vector<Token> Rules;
+    vector<Token> Queries;
     vector<string> stringID;
     string IDName;
     string Tokens;

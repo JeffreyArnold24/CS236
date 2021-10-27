@@ -1,6 +1,8 @@
 #include "Parser.h"
 #include <string>
 #include <fstream>
+#include <iostream>
+#include <algorithm>
 using namespace std;
 
 
@@ -228,7 +230,6 @@ bool Parser::checkFacts() {
 	currentLetter = myfile.get();
 	if (currentLetter != '.') {
 		line = newLine(line);
-		line = newLine(line);
 		myfile.close();
 		closeFile = true;
 		errorMessage("Period", ".", line);
@@ -400,7 +401,6 @@ bool Parser::checkQueries() {
 		line = newLine(line);
 	}
 	if (currentLetter != '?') {
-		line = newLine(line);
 		myfile.close();
 		closeFile = true;
 		errorMessage("PERIOD", ".", line);
@@ -464,6 +464,7 @@ void Parser::readInput(string file) {
 		currentLetter = myfile.get();
 	}
 	while (whichSection != "Facts:") {
+		Token SchemeToken;
 		Tokens = "";
 		whichSection = "";
 		while (isspace(currentLetter)) {
@@ -473,24 +474,46 @@ void Parser::readInput(string file) {
 			comment();
 		}
 		else {
-			while ((currentLetter != ')') && (currentLetter != ':')) {
+			while ((currentLetter != '(') && (currentLetter != ':')) {
 				if (!isspace(currentLetter)) {
 					whichSection += currentLetter;
 					Tokens += currentLetter;
 				}
-				
+
+				currentLetter = myfile.get();
+				if (currentLetter == ':') {
+					whichSection += ':';
+					
+				}
+			}
+			if (whichSection != "Facts:") {
+				SchemeToken.setType("Scheme");
+				SchemeToken.setValue(Tokens);
+				whichSection += currentLetter;
+				Tokens += currentLetter;
+				currentLetter = myfile.get();
+				while (currentLetter != ')') {
+					IDName = "";
+					while (currentLetter != ',' && currentLetter != ')') {
+						IDName += currentLetter;
+						currentLetter = myfile.get();
+
+					}
+					SchemeToken.addID(IDName);
+					if (currentLetter != ')') {
+						currentLetter = myfile.get();
+					}
+				}
+				Schemes.push_back(SchemeToken);
 				currentLetter = myfile.get();
 			}
-			whichSection += currentLetter;
-			Tokens += currentLetter;
-			currentLetter = myfile.get();
-			if (whichSection != "Facts:") {
-				Schemes.push_back(Tokens);
-			}
+			
 		}
 	}
 
+	currentLetter = myfile.get();
 	while (whichSection != "Rules:") {
+		Token FactToken;
 		whichSection = "";
 		Tokens = "";
 		while (isspace(currentLetter)) {
@@ -513,13 +536,14 @@ void Parser::readInput(string file) {
 					whichSection += ':';
 				}
 			}
-			Tokens += currentLetter;
 			currentLetter = myfile.get();
+			FactToken.setValue(Tokens);
 			if (whichSection != "Rules:") {
+				FactToken.setType("Rules");
+				FactToken.setType(Tokens);
 				while ((currentLetter != '.')) {
 					IDName = "";
 					if (currentLetter == '\'') {
-						Tokens += currentLetter;
 						IDName += currentLetter;
 						currentLetter = myfile.get();
 						while (currentLetter != '\'') {
@@ -527,18 +551,16 @@ void Parser::readInput(string file) {
 							IDName += currentLetter;
 							currentLetter = myfile.get();
 						}
-						Tokens += currentLetter;
 						IDName += currentLetter;
-						stringID.push_back(IDName);
+						FactToken.addID(IDName);
 						currentLetter = myfile.get();
 					}
-					Tokens += currentLetter;
 					currentLetter = myfile.get();
 
 				}
 				Tokens += currentLetter;
 				currentLetter = myfile.get();
-				Facts.push_back(Tokens);
+				Facts.push_back(FactToken);
 			}
 		}
 	}
@@ -593,13 +615,14 @@ void Parser::readInput(string file) {
 				}
 				Tokens += currentLetter;
 				currentLetter = myfile.get();
-				Rules.push_back(Tokens);
+				//Rules.push_back(Tokens);
 			}
 		}
 	}
 
 	while (myfile.peek() != EOF) {
 		Tokens = "";
+		Token QuerieToken;
 		while (isspace(currentLetter)) {
 			currentLetter = myfile.get();
 		}
@@ -608,38 +631,36 @@ void Parser::readInput(string file) {
 				comment();
 			}
 			else {
-				while ((currentLetter != '(')) {
-					Tokens += currentLetter;
+				while (currentLetter != '(') {
+					if (!isspace(currentLetter)) {
+						whichSection += currentLetter;
+						Tokens += currentLetter;
+					}
 					currentLetter = myfile.get();
-					if (currentLetter == '\n') {
-						currentLetter = myfile.get();
+					if (currentLetter == ':') {
+						currentLetter = '(';
+						whichSection += ':';
 					}
 				}
-				if (!isspace(currentLetter)) {
-					Tokens += currentLetter;
-				}
+				QuerieToken.setType("Queries");
+				QuerieToken.setValue(Tokens);
 				currentLetter = myfile.get();
 				if ((myfile.peek() != EOF) || (currentLetter != '?')) {
 					while ((currentLetter != '?')) {
 						if (currentLetter != '?') {
 							IDName = "";
-							if (currentLetter == '\'') {
-								Tokens += currentLetter;
+							if (currentLetter != ')') {
+								
 								IDName += currentLetter;
 								currentLetter = myfile.get();
-								while (currentLetter != '\'') {
-									Tokens += currentLetter;
+								while ((currentLetter != ',') && currentLetter != ')') {
 									IDName += currentLetter;
 									currentLetter = myfile.get();
 								}
-								Tokens += currentLetter;
-								IDName += currentLetter;
 								currentLetter = myfile.get();
+								QuerieToken.addID(IDName);
 							}
-							if (!isspace(currentLetter)) {
-								Tokens += currentLetter;
-							}
-							currentLetter = myfile.get();
+							
 						}
 						else {
 							Tokens += currentLetter;
@@ -649,7 +670,7 @@ void Parser::readInput(string file) {
 					}
 					Tokens += currentLetter;
 					currentLetter = myfile.get();
-					Queries.push_back(Tokens);
+					Queries.push_back(QuerieToken);
 				}
 			}
 		}
@@ -666,50 +687,66 @@ void Parser::comment() {
 
 string Parser::printTokens() {
 	string print = "";
-	print += "Schemes(";
-	print += to_string(Schemes.size());
-	print += "):";
-	print += "\n";
-	for (long unsigned int i = 0; i < Schemes.size(); ++i) {
-		print += "  ";
-		print += Schemes.at(i);
-		print += "\n";
-	}
-	print += "Facts(";
-	print += to_string(Facts.size());
-	print += "):";
-	print += "\n";
-	for (long unsigned int i = 0; i < Facts.size(); ++i) {
-		print += "  ";
-		print += Facts.at(i);
-		print += "\n";
-	}
-	print += "Rules(";
-	print += to_string(Rules.size());
-	print += "):";
-	print += "\n";
-	for (long unsigned int i = 0; i < Rules.size(); ++i) {
-		print += "  ";
-		print += Rules.at(i);
-		print += "\n";
-	}
-	print += "Queries(";
-	print += to_string(Queries.size());
-	print += "):";
-	print += "\n";
-	for (long unsigned int i = 0; i < Queries.size(); ++i) {
-		print += "  ";
-		print += Queries.at(i);
-		print += "\n";
-	}
-	print += "Domain(";
-	print += to_string(stringID.size());
-	print += "):";
-	print += "\n";
-	for (long unsigned int i = 0; i < stringID.size(); ++i) {
-		print += "  ";
-		print += stringID.at(i);
-		print += "\n";
+	string variableSubs = "";
+	bool matchingIDs = true;
+	for (int i = 0; i < Queries.size(); ++i) {
+		vector<string> variableSubsVector;
+		
+		print += Queries.at(i).getValue() += "(";
+		for (int j = 0; j < Queries.at(i).numberIDs(); ++j) {
+			print += Queries.at(i).getID(j);
+			if (j != (Queries.at(i).numberIDs() - 1)) {
+				print += ",";
+			}
+			else {
+				print += ")? ";
+			}
+		}
+		for (int j = 0; j < Facts.size(); ++j) {
+			matchingIDs = true;
+			if (Queries.at(i).getValue() == Facts.at(j).getValue()) {
+				for (int k = 0; k < Queries.at(i).numberIDs(); ++k) {
+					if (Queries.at(i).getID(k)[0] == '\'') {
+						if (Queries.at(i).getID(k) != Facts.at(j).getID(k)) {
+							matchingIDs = false;
+						}
+					}
+				}
+			}
+			else {
+				matchingIDs = false;
+			}
+			if (matchingIDs) {
+				variableSubs = "  ";
+				for (int k = 0; k < Queries.at(i).numberIDs(); ++k) {
+					if (Queries.at(i).getID(k)[0] != '\'') {
+						variableSubs += Queries.at(i).getID(k);
+						variableSubs += "=";
+						variableSubs += Facts.at(j).getID(k);
+						if (k != Queries.at(i).numberIDs() - 1) {
+							variableSubs += ", ";
+						}
+					}
+					
+				}
+				variableSubs += '\n';
+				variableSubsVector.push_back(variableSubs);
+			}	
+		}
+		if (variableSubsVector.size() > 0) {
+			sort(variableSubsVector.begin(), variableSubsVector.end());
+			print += "Yes(";
+			print += to_string(variableSubsVector.size());
+			print += ")\n";
+			for (int j = 0; j < variableSubsVector.size(); ++j) {
+				if (variableSubsVector.at(j) != "  \n") {
+					print += variableSubsVector.at(j);
+				}
+			}
+		}
+		else {
+			print += "No\n";
+		}
 	}
 	return print;
 }

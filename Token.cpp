@@ -25,3 +25,15 @@ string Token::getLine() {
 	string str = to_string(lineNumber);
 	return str;
 }
+
+void Token::addID(string IDName) {
+	IDValues.push_back(IDName);
+}
+
+string Token::getID(int index) {
+	return IDValues.at(index);
+}
+
+int Token::numberIDs() {
+	return IDValues.size();
+}

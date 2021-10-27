@@ -6,7 +6,7 @@ int main(int argc, char* argv[]) {
 
     string filename = argv[1];
     Parser p;
-    bool wasASuccess = p.Parse(filename);
+    /*bool wasASuccess = p.Parse(filename);
     if (wasASuccess) {
         cout << "Success!" << endl;
         p.readInput(filename);
@@ -17,7 +17,9 @@ int main(int argc, char* argv[]) {
     else {
         cout << "Failure!" << endl;
         cout << "  " << p.printError() << endl;
-    }
+    }*/
+    p.readInput(filename);
+    cout << p.printTokens();
     
     return 0;
 }
