@@ -723,12 +723,12 @@ string Parser::printTokens() {
 						variableSubs += Queries.at(i).getID(k);
 						variableSubs += "=";
 						variableSubs += Facts.at(j).getID(k);
-						if (k != Queries.at(i).numberIDs() - 1) {
-							variableSubs += ", ";
-						}
+						variableSubs += ", ";
 					}
 					
 				}
+				variableSubs.pop_back();
+				variableSubs.pop_back();
 				variableSubs += '\n';
 				variableSubsVector.push_back(variableSubs);
 			}	
