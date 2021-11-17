@@ -43,7 +43,7 @@ public:
 	predicate toPred()
 	{
 		predicate temp(name);
-		for(int i = 0; i < parameterList.size(); i++)
+		for(long unsigned int i = 0; i < parameterList.size(); i++)
 		{
 			parameter tempParam;
 			tempParam.value = parameterList[i];
@@ -59,7 +59,7 @@ public:
 	{
 		string output;
 		output = name + "(";
-		for(int i = 0; i < parameterList.size()-1; i++)
+		for(long unsigned int i = 0; i < parameterList.size()-1; i++)
 		{
 			output = output + parameterList[i] + ",";
 		}

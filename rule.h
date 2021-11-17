@@ -36,7 +36,7 @@ public:
 	string toString()
 	{
 		string output = headPredicate.toString() + " :- ";
-		for(int i = 0; i < predList.size()-1; i++)
+		for(long unsigned int i = 0; i < predList.size()-1; i++)
 		{
 			output += predList[i].toString() + ",";
 		}

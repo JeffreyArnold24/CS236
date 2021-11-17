@@ -40,29 +40,29 @@ string datalogProgram::toString()
 {
 	string output;
 	output = "Schemes(" + intToString(schemesList.size()) + "):\n";
-	for(int i = 0; i < schemesList.size(); i++)
+	for(long unsigned int i = 0; i < schemesList.size(); i++)
 	{
 		output += "  " + schemesList[i].toString() + "\n";
 	}
 	output += "Facts(" + intToString(factsList.size()) +  "):\n";
-	for(int i = 0; i < factsList.size(); i++)
+	for(long unsigned int i = 0; i < factsList.size(); i++)
 	{
 		output += "  " + factsList[i].toString() + ".\n";
 	}
 	output += "Rules(" + intToString(rulesList.size()) + "):\n";
-	for(int i = 0; i < rulesList.size(); i++)
+	for(long unsigned int i = 0; i < rulesList.size(); i++)
 	{
 		output += "  " + rulesList[i].toString() + ".\n";
 	}
 
 	output += "Queries(" + intToString(queryList.size()) + "):\n";
-	for(int i = 0; i < queryList.size(); i++)
+	for(long unsigned int i = 0; i < queryList.size(); i++)
 	{
 		output += "  " + queryList[i].toString() + "?\n";
 	}
 
 	output += "Domain(" + intToString(domain.size()) + "):\n";
-	for(int i = 0; i < domain.size(); i++)
+	for(long unsigned int i = 0; i < domain.size(); i++)
 	{
 		output += "  " + domain[i] + "\n";
 	}

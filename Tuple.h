@@ -20,7 +20,7 @@ public:
 	Tuple(scheme s)
 	{
 		//push_back(s.name);
-		for(int i = 0; i < s.parameterList.size(); i++)
+		for(long unsigned int i = 0; i < s.parameterList.size(); i++)
 		{
 			push_back(s.parameterList[i]);
 		}

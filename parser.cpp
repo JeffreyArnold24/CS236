@@ -154,7 +154,7 @@ predicate parser::headPredicate()
 	newHead.addParameter(initial);
 	match(ID);
 	temp = idList();
-	for(int i = 0; i < temp.size(); i++)
+	for(long unsigned int i = 0; i < temp.size(); i++)
 	{
 		parameter a;
 		a.value = temp[i];

@@ -23,7 +23,7 @@ void scanner::scan(string fileName)
 		makeToken(END, line);
 
 		outputFile.open("output.txt");
-		for(int i = 0; i < myVector.size(); i++)
+		for(long unsigned int i = 0; i < myVector.size(); i++)
 		{
 			outputFile << myVector[i].print() << endl;
 
@@ -233,7 +233,7 @@ void scanner::makeToken(tokType type, int lineNum)
 
 void scanner::valueToUpper()
 {
-	for(int i = 0; i < value.length(); i++)
+	for(long unsigned int i = 0; i < value.length(); i++)
 	{
 		valueUpper += toupper(value[i]);
 	}

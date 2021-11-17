@@ -20,7 +20,7 @@ void interpreter::start(string inputFile)
 
 
 	//creating relations
-	for(int i = 0; i < schemesList.size(); i++)
+	for(long unsigned int i = 0; i < schemesList.size(); i++)
 	{
 		relation newRelation;
 		newRelation.setScheme(schemesList[i]);
@@ -28,7 +28,7 @@ void interpreter::start(string inputFile)
 	}
 
 	//Adding tuples to relations
-	for(int i = 0; i < factsList.size(); i++)
+	for(long unsigned int i = 0; i < factsList.size(); i++)
 	{
 		Tuple newTuple(factsList[i]);
 		db.relations[factsList[i].name].addTuple(newTuple);
@@ -44,7 +44,7 @@ void interpreter::start(string inputFile)
 
 //Process Queries
 //formatting according to queries
-	for(int i = 0; i < queryList.size(); i++)
+	for(long unsigned int i = 0; i < queryList.size(); i++)
 	{
 		relation afterSelects;
 		relation afterProjects;
@@ -78,7 +78,7 @@ void interpreter::start(string inputFile)
 			{
 				cout << "  ";
 				int count = 0;
-				for(int x = 0; x < afterProjects.myScheme.parameterList.size(); x++)
+				for(long unsigned int x = 0; x < afterProjects.myScheme.parameterList.size(); x++)
 				{
 
 					if(count != 0)
@@ -113,7 +113,7 @@ void interpreter::processRules()
 	{
 		sizeBefore = db.getSize();
 
-		for(int i = 0; i < rulesList.size(); i++)
+		for(long unsigned int i = 0; i < rulesList.size(); i++)
 		{
 			predicate headPred = rulesList[i].headPredicate;
 			vector<predicate> predList = rulesList[i].predList;
@@ -122,7 +122,7 @@ void interpreter::processRules()
 			afterPreds = selects(predList[0]);
 			afterPreds = projectQuery(predList[0], afterPreds);
 
-			for(int j = 1; j < predList.size(); j++)
+			for(long unsigned int j = 1; j < predList.size(); j++)
 			{
 				afterPreds = join(afterPreds, projectQuery(predList[j], selects(predList[j])));
 			}
@@ -149,7 +149,7 @@ relation interpreter::selects(predicate query)
 
 
 	//selects based on strings
-	for(int j = 0; j < query.parameterList.size(); j++)
+	for(long unsigned int j = 0; j < query.parameterList.size(); j++)
 	{
 		parameter temp = query.parameterList[j];
 
@@ -161,9 +161,9 @@ relation interpreter::selects(predicate query)
 	}
 
 	//selects based on IDs
-	for(int j = 0; j < query.parameterList.size(); j++)
+	for(long unsigned int j = 0; j < query.parameterList.size(); j++)
 	{
-		for(int k = j+1; k < query.parameterList.size(); k++)
+		for(long unsigned int k = j+1; k < query.parameterList.size(); k++)
 		{
 			if(query.parameterList[j].value == query.parameterList[k].value)
 			{
@@ -184,13 +184,13 @@ relation interpreter::projectQuery(predicate query, relation rel)
 	relation newRelation;
 
 	//creating vector of positions to project
-	for(int k = 0; k < query.parameterList.size(); k++)
+	for(long unsigned int k = 0; k < query.parameterList.size(); k++)
 	{
 		parameter temp = query.parameterList[k];
 		if(temp.type == ID)
 		{
 			bool exists = false;
-			for(int x = 0; x < projectsPos.size(); x++)
+			for(long unsigned int x = 0; x < projectsPos.size(); x++)
 			{
 				if(temp.value == renameVals[x])
 					exists = true;
@@ -220,20 +220,20 @@ relation interpreter::projectJoin(predicate query, relation rel)
 	relation newRelation;
 
 	//creating vector of positions to project
-	for(int k = 0; k < query.parameterList.size(); k++)
+	for(long unsigned int k = 0; k < query.parameterList.size(); k++)
 	{
 		parameter temp = query.parameterList[k];
 		if(temp.type == ID)
 		{
 			bool exists = false;
-			for(int x = 0; x < projectsPos.size(); x++)
+			for(long unsigned int x = 0; x < projectsPos.size(); x++)
 			{
 				if(temp.value == renameVals[x])
 					exists = true;
 			}
 			if(!exists)
 			{
-				for(int l = 0; l < rel.myScheme.parameterList.size(); l++)
+				for(long unsigned int l = 0; l < rel.myScheme.parameterList.size(); l++)
 				{
 					if(temp.value == rel.myScheme.parameterList[l])
 					{
@@ -301,9 +301,9 @@ relation interpreter::join(relation a, relation b)
 
 bool interpreter::joinable(Tuple a, Tuple b, vector<string> aParam, vector<string> bParam)
 {
-	for(int i = 0; i < a.size(); i++)
+	for(long unsigned int i = 0; i < a.size(); i++)
 	{
-		for(int j=0; j < b.size(); j++)
+		for(long unsigned int j=0; j < b.size(); j++)
 		{
 			if(aParam[i] == bParam[j] && a[i] != b[j])
 				return false;

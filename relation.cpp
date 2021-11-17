@@ -79,7 +79,7 @@ relation relation::project(vector<int> pos)
 		for(set<Tuple>::iterator it = tupleList.begin(); it != tupleList.end(); ++it)
 		{
 			Tuple temp;
-			for(int i = 0; i < pos.size(); i++)
+			for(long unsigned int i = 0; i < pos.size(); i++)
 			{
 				temp.push_back((*it)[pos[i]]);
 			}
