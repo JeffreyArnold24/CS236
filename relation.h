@@ -1,43 +1,41 @@
-/*
- * relation.h
- *
- *  Created on: Mar 1, 2015
- *      Author: benjamin
- */
-
-#ifndef RELATION_H_
-#define RELATION_H_
-
-#include "Tuple.h"
-//#include "scheme.h"
-#include <iostream>
+#pragma once
+#include "scheme.h"
+#include "tuple.h"
 #include <set>
 
-using namespace std;
 
-class relation
-{
+class Relation {
 public:
-	relation(){}
-	~relation(){}
+    Relation() {}
 
-//methods
-	void setScheme(scheme s);
-	void addTuple(Tuple t);
-	void addTuples(relation tups);
-	string toString();
-	relation select(int pos, string val);
-	relation select(int pos1, int pos2);
-	relation project(vector<int> pos);
-	string printResult();
-	int getSize();
+    Relation Select(int index, string value);
+    Relation Select(int indexOne, int indexTwo);
+    Relation Project(vector<int> indicies);
+    Relation Rename(vector<string> names);
 
-//variables
-	set<Tuple> tupleList;
-	scheme myScheme;
+//==========================================Code Added in Lab 4===================================================//
+    Relation Join(Relation relationToJoin);
+    bool Unite(Relation toUnite);
+    bool isJoinable(Tuple Tuple1, Tuple Tuple2Add, Scheme Scheme1, Scheme Scheme2Add);
+//==========================================Code Added in Lab 4===================================================//
 
+    void AddTuple(Tuple tuples); 
+    void SetScheme(Scheme DemSchemes);
+    void SetName(string DatName);
+
+    Scheme GetScheme() {
+        return TheScheme;
+    }
+    set<Tuple> GetTuple() {
+        return DemTuples;
+    }
+    int GetTupleSize() {
+        return DemTuples.size();
+    }
+
+    void ToString();
+    set<Tuple> DemTuples;
+    string name;
+    Scheme TheScheme;
+    bool BeenOutPutted;
 };
-
-
-
-#endif /* RELATION_H_ */

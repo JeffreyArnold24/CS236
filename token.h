@@ -1,61 +1,27 @@
-/*
- * token.h
- *
- *  Created on: Jan 26, 2015
- *      Author: benjamin
- */
-
-#ifndef TOKEN_H_
-#define TOKEN_H_
+#pragma once
+#include <iostream>
 #include <string>
-#include <map>
+#include <cctype>
 
 using namespace std;
 
-enum tokType {COMMA,PERIOD,Q_MARK,LEFT_PAREN,RIGHT_PAREN,COLON,COLON_DASH,
-				MULTIPLY,ADD,SCHEMES,FACTS,RULES,QUERIES,ID,STRING,COMMENT,WHITESPACE,
-				UNDEFINED,END};
-
-class token
-{
-public:
-
-	token(tokType t, string v, int l):type(t),value(v),line(l)
-	{
-		mapOfToks[COMMA] = "COMMA";
-		mapOfToks[PERIOD] = "PERIOD";
-		mapOfToks[Q_MARK] = "Q_MARK";
-		mapOfToks[LEFT_PAREN] = "LEFT_PAREN";
-		mapOfToks[RIGHT_PAREN] = "RIGHT_PAREN";
-		mapOfToks[COLON] = "COLON";
-		mapOfToks[COLON_DASH] = "COLON_DASH";
-		mapOfToks[MULTIPLY] = "MULTIPLY";
-		mapOfToks[ADD] = "ADD";
-		mapOfToks[SCHEMES] = "SCHEMES";
-		mapOfToks[FACTS] = "FACTS";
-		mapOfToks[RULES] = "RULES";
-		mapOfToks[QUERIES] = "QUERIES";
-		mapOfToks[ID] = "ID";
-		mapOfToks[STRING] = "STRING";
-		mapOfToks[COMMENT] = "COMMENT";
-		mapOfToks[WHITESPACE] = "WHITESPACE";
-		mapOfToks[UNDEFINED] = "UNDEFINED";
-		mapOfToks[END] = "EOF";
-	}
-	token(){}
-	~token(){}
-	tokType type;
-	string value;
-	string print();
-	string lineToString();
-
-private:
-
-
-	int line;
-	map<tokType, string> mapOfToks;
+enum TokenType {COMMA, PERIOD, Q_MARK, LEFT_PAREN, RIGHT_PAREN, COLON, COLON_DASH, 
+    MULTIPLY, ADD, SCHEMES, FACTS, RULES, QUERIES, ID, STRING, COMMENT, UNDEFINED, EOFa, ERROR
 };
 
-
-
-#endif /* TOKEN_H_ */
+class Token {
+     public:
+        Token();
+        ~Token();
+        string toString();
+        string TypeString();
+        string GetValue();
+        TokenType GetType();
+        int GetLineNumber();
+        void SetValues(string token, int lineNumber);
+        void SetComplexValues(string type, string token, int lineNumber);
+    protected:
+        string tokenValue;
+        int lineNumber;
+        TokenType tokenType;
+};

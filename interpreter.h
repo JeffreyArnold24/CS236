@@ -1,47 +1,20 @@
-/*
- * interpreter.h
- *
- *  Created on: Mar 1, 2015
- *      Author: benjamin
- */
-
-#ifndef INTERPRETER_H_
-#define INTERPRETER_H_
-
-#include "parser.h"
+#pragma once
 #include "database.h"
+#include "datalog.h"
 
-using namespace std;
+class Interpreter {
+    private:
+        Database theDatabase;
+        Datalog theDatalog;
+    public:
+        void SetDatalog(Datalog theInformation);
 
-class interpreter
-{
-public:
-	interpreter(){}
-	~interpreter(){}
-
-//functions
-	void start(string inputFile);
-
-//variables
-	vector<scheme> schemesList;
-	vector<scheme> factsList;
-	vector<string> domain;
-	vector<rule> rulesList;
-	vector<predicate> queryList;
-private:
-	parser myParser;
-	database db;
-	void processRules();
-	relation selects(predicate query);
-	relation projectQuery(predicate query, relation rel);
-	relation projectJoin(predicate query, relation rel);
-	void rename(string name, vector<string> param, relation &renameRel);
-	relation join(relation a, relation b);
-	bool joinable(Tuple a, Tuple b, vector<string> aParam, vector<string> bParam);
-
+        void SchemesToDatabase(vector<Predicate> Schemes);
+        void FactsToDatabase(vector<Predicate> Facts);
+        void RelationQueries(vector<Predicate> Queries);
+//======================================Added in Lab 4 =====================================================//
+        void RelationRules(vector<Rule> Rules);
+        Relation EvalutatePredicate(Predicate Predicates);
+//======================================Added in Lab 4 =====================================================//
+        string ToString();
 };
-
-
-
-
-#endif /* INTERPRETER_H_ */

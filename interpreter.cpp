@@ -1,315 +1,177 @@
-/*
- * interpreter.cpp
- *
- *  Created on: Mar 1, 2015
- *      Author: benjamin
- */
+
 #include "interpreter.h"
-#include <iostream>
-#include <algorithm>
-#include "token.h"
 
-void interpreter::start(string inputFile)
-{
-	myParser.parse(inputFile);
-	schemesList = myParser.schemesList;
-	factsList = myParser.factsList;
-	domain = myParser.domain;
-	rulesList = myParser.rulesList;
-	queryList = myParser.queryList;
-
-
-	//creating relations
-	for(long unsigned int i = 0; i < schemesList.size(); i++)
-	{
-		relation newRelation;
-		newRelation.setScheme(schemesList[i]);
-		db.relations.insert(pair<string, relation>(schemesList[i].name,newRelation));
-	}
-
-	//Adding tuples to relations
-	for(long unsigned int i = 0; i < factsList.size(); i++)
-	{
-		Tuple newTuple(factsList[i]);
-		db.relations[factsList[i].name].addTuple(newTuple);
-
-	}
-
-
-//Process Rules
-	processRules();
-
-	//for testing prints out database after processing rules
-		//cout << db.toString();
-
-//Process Queries
-//formatting according to queries
-	for(long unsigned int i = 0; i < queryList.size(); i++)
-	{
-		relation afterSelects;
-		relation afterProjects;
-
-
-
-	//Selects
-		afterSelects = selects(queryList[i]);
-
-	//Project(s) & Rename
-		afterProjects = projectQuery(queryList[i], afterSelects);
-
-
-
-
-	//print out results
-		cout << queryList[i].toString() << "? ";
-		if((afterSelects.tupleList).empty())
-		{
-			cout << "No\n";
-		}
-		else if((afterProjects.tupleList).empty())
-		{
-			cout << "Yes(1)\n";
-		}
-		else
-		{
-
-			cout << "Yes(" << afterProjects.tupleList.size() << ")\n";
-			for(set<Tuple>::iterator it = afterProjects.tupleList.begin(); it != afterProjects.tupleList.end(); ++it)
-			{
-				cout << "  ";
-				int count = 0;
-				for(long unsigned int x = 0; x < afterProjects.myScheme.parameterList.size(); x++)
-				{
-
-					if(count != 0)
-						cout << ", ";
-					cout  << afterProjects.myScheme.parameterList[x] << "="
-							<< (*it)[count];
-					count++;
-
-				}
-				cout << endl;
-			}
-		}
-
-
-
-
-	}
-
-
-
-
-
+void Interpreter::SetDatalog(Datalog thisDatalog){
+    theDatalog = thisDatalog;
+    SchemesToDatabase(theDatalog.GetSchemes());
+    FactsToDatabase(theDatalog.GetFacts());
+    RelationRules(theDatalog.GetRules());
+    cout << "Query Evaluation" << endl;
+    RelationQueries(theDatalog.GetQueries());
 }
 
-void interpreter::processRules()
-{
-	int sizeBefore = 0;
-	int sizeAfter = 0;
-	int numPasses = 0;
-
-	do
-	{
-		sizeBefore = db.getSize();
-
-		for(long unsigned int i = 0; i < rulesList.size(); i++)
-		{
-			predicate headPred = rulesList[i].headPredicate;
-			vector<predicate> predList = rulesList[i].predList;
-			relation afterPreds;
-
-			afterPreds = selects(predList[0]);
-			afterPreds = projectQuery(predList[0], afterPreds);
-
-			for(long unsigned int j = 1; j < predList.size(); j++)
-			{
-				afterPreds = join(afterPreds, projectQuery(predList[j], selects(predList[j])));
-			}
-
-
-			afterPreds = projectJoin(headPred, afterPreds);
-
-			db.relations[headPred.name].addTuples(afterPreds);
-
-
-		}
-
-		sizeAfter = db.getSize();
-
-		numPasses++;
-	}while(sizeBefore != sizeAfter);
-
-	cout << "Schemes populated after " << numPasses <<  " passes through the Rules." << endl;
+void Interpreter::SchemesToDatabase(vector<Predicate> Predicates) {
+    for(unsigned int i = 0; i < Predicates.size(); i++) {
+        string theName = Predicates.at(i).GetName();
+        Scheme theScheme;
+        for (unsigned int j = 0; j < Predicates.at(i).ReturnVector().size(); j++) {
+            theScheme.Push_back(Predicates.at(i).ReturnVector().at(j).ToString());
+        }
+        Relation newRelation;
+        newRelation.SetName(theName);
+        newRelation.SetScheme(theScheme);
+        theDatabase.AddRelation(theName, newRelation);
+    }
+    return;
 }
 
-relation interpreter::selects(predicate query)
-{
-	relation newRelation = db.relations[query.name];
+void Interpreter::FactsToDatabase(vector<Predicate> Facts) {
+    for (unsigned int j = 0; j < Facts.size(); j++) {
+        string theName;
+        theName = Facts.at(j).GetName();
+        Tuple theTuple;
+        for(unsigned int i = 0; i < Facts.at(j).ReturnVector().size(); i++) {
+            theTuple.push_back(Facts.at(j).ReturnVector().at(i).ToString());
+        }
+        theDatabase.AddTuplesToRelation(theName, theTuple);
+    }
+    return;
+}
+void Interpreter::RelationQueries(vector<Predicate> Queries){
 
-
-	//selects based on strings
-	for(long unsigned int j = 0; j < query.parameterList.size(); j++)
-	{
-		parameter temp = query.parameterList[j];
-
-		if(temp.type == STRING)
-		{
-
-			newRelation = newRelation.select(j, temp.value);
-		}
-	}
-
-	//selects based on IDs
-	for(long unsigned int j = 0; j < query.parameterList.size(); j++)
-	{
-		for(long unsigned int k = j+1; k < query.parameterList.size(); k++)
-		{
-			if(query.parameterList[j].value == query.parameterList[k].value)
-			{
-				newRelation = newRelation.select(j,k);
-				break;
-			}
-
-		}
-	}
-
-	return newRelation;
+    for (unsigned int i = 0; i < Queries.size(); i++) {
+        //=====
+        //cout << "try new=====================================" << endl;
+        Relation aRelation = EvalutatePredicate(Queries.at(i));
+        cout << Queries.at(i).ToString() << "? ";
+        if (aRelation.DemTuples.size() == 0) {
+            cout << "No\n";  
+        }
+        else {
+            cout << "Yes(" << aRelation.DemTuples.size() <<")\n";
+            aRelation.ToString();
+        }
+    }
+    return;
+}
+//===================================================================================================NEW PROJECT 4 =====================================================
+Relation Interpreter::EvalutatePredicate(Predicate Queries) {
+        string theName = Queries.GetName();
+        vector<int> theInts;
+        vector<string> theStrings;
+        Relation thisRelation = theDatabase.databaseseses.at(theName);
+        for (unsigned int j = 0; j < Queries.ReturnVector().size(); j++) { 
+            Parameter currentParameter = Queries.ReturnVector().at(j);
+            if (currentParameter.IsString() == true) {
+                string yes = currentParameter.theParameter;
+                thisRelation = thisRelation.Select(j,yes);
+            }
+            else { 
+                bool duplicate = false;
+                for (unsigned int k = 0; k < theStrings.size(); k++) {    
+                    if (theStrings.at(k) == currentParameter.theParameter) { 
+                        duplicate = true;
+                        thisRelation = thisRelation.Select(j,k);
+                    }
+                }
+                if(duplicate == false) {
+                    theStrings.push_back(currentParameter.theParameter);
+                    theInts.push_back(j);
+                }
+            }
+        }
+        thisRelation = thisRelation.Project(theInts);
+        thisRelation = thisRelation.Rename(theStrings);
+        return thisRelation;
 }
 
-relation interpreter::projectQuery(predicate query, relation rel)
-{
-	vector<int> projectsPos;
-	vector<string> renameVals;
-	relation newRelation;
 
-	//creating vector of positions to project
-	for(long unsigned int k = 0; k < query.parameterList.size(); k++)
-	{
-		parameter temp = query.parameterList[k];
-		if(temp.type == ID)
-		{
-			bool exists = false;
-			for(long unsigned int x = 0; x < projectsPos.size(); x++)
-			{
-				if(temp.value == renameVals[x])
-					exists = true;
-			}
-			if(!exists)
-			{
-				projectsPos.push_back(k);
-				renameVals.push_back(temp.value);
-			}
-
-		}
-	}
-
-	//Perform projections
-	newRelation = rel.project(projectsPos);
-
-	rename(query.name, renameVals, newRelation);
-
-
-	return newRelation;
+void Interpreter::RelationRules(vector<Rule> Rules){
+    cout << "Rule Evaluation" << endl;
+    bool moreTuples = true;
+    int rulesPass =0;
+    while (moreTuples) {
+        moreTuples = false;
+        vector <bool> shouldGoOn;
+        rulesPass++;
+        for (unsigned int i = 0; i < Rules.size(); i ++) {
+            cout << Rules.at(i).ToString()<< endl;
+            vector <Relation> theRelations; 
+            for (unsigned int j = 0; j < Rules.at(i).RuleList.size(); j ++ ) {
+                Relation thisRelation = EvalutatePredicate(Rules.at(i).RuleList.at(j));
+                theRelations.push_back(thisRelation);
+            }
+            
+            // Join
+            Relation thisRelation;
+            if (theRelations.size() > 1) {
+                thisRelation = theRelations.at(0);
+                for (unsigned int j = 0; j < theRelations.size()-1; j++ ) {
+                    thisRelation = thisRelation.Join(theRelations.at(j+1));
+                }
+            }
+            else {
+                thisRelation = theRelations.at(0);
+            }
+            //Project
+            //What the heck is going on???
+            vector <int> Indicies;
+            for (unsigned int j = 0; j < Rules.at(i).Head.parameterList.size(); j++) {
+                //cout << Rules.at(i).Head.parameterList.at(j).ToString() << " | " << thisRelation.TheScheme.Fake();
+                for (unsigned int k = 0; k < thisRelation.TheScheme.Size(); k++) {
+                    //cout << Rules.at(i).Head.parameterList.at(j).theParameter << "|" << thisRelation.TheScheme.At(k) << endl;
+                    if (Rules.at(i).Head.parameterList.at(j).theParameter == thisRelation.TheScheme.At(k)) {
+                        Indicies.push_back(k);
+                        //cout << "got pushed back" << endl;
+                    }
+                }
+            }
+            //cout << "indicies: " <<Indicies.size() << endl;
+            thisRelation = thisRelation.Project(Indicies);
+            //Rename
+            thisRelation.name = Rules.at(i).Head.Name;
+            if (theDatabase.databaseseses.at(thisRelation.name).TheScheme.values.size() == thisRelation.TheScheme.values.size()) {
+                thisRelation.TheScheme = theDatabase.databaseseses.at(thisRelation.name).TheScheme;
+            }
+            else {
+                //cout << "abort" << endl;
+            }
+            /*
+            cout << "Scheme end:" ;
+            for (unsigned int i = 0; i < theDatabase.databaseseses.at(thisRelation.name).TheScheme.values.size(); i++) {
+                cout << theDatabase.databaseseses.at(thisRelation.name).TheScheme.values.at(i);
+            }
+            cout << endl;
+            thisRelation.Rename(theDatabase.databaseseses.at(thisRelation.name).TheScheme.values);
+            cout << "Scheme end:" ;
+            for (unsigned int i = 0; i < thisRelation.TheScheme.values.size(); i++) {
+                cout << thisRelation.TheScheme.values.at(i);
+            }
+            */
+            //Union
+            shouldGoOn.push_back(theDatabase.databaseseses.at(thisRelation.name).Unite(thisRelation));
+        
+            //output
+            /*
+            if (theDatabase.databaseseses.at(thisRelation.name).DemTuples.size() == 0) {}
+            else {
+                if (theDatabase.databaseseses.at(thisRelation.name).BeenOutPutted == false) {
+                    thisRelation.ToString();
+                }
+            }  
+            */
+        }
+        for (unsigned int a = 0; a <shouldGoOn.size(); a++) {
+            if (shouldGoOn.at(a)) {
+                moreTuples = true;
+            } 
+        }
+    }
+    cout << endl << "Schemes populated after " << rulesPass << " passes through the Rules." << endl << endl;;
+    return;
 }
 
-relation interpreter::projectJoin(predicate query, relation rel)
-{
-	vector<int> projectsPos;
-	vector<string> renameVals;
-	relation newRelation;
-
-	//creating vector of positions to project
-	for(long unsigned int k = 0; k < query.parameterList.size(); k++)
-	{
-		parameter temp = query.parameterList[k];
-		if(temp.type == ID)
-		{
-			bool exists = false;
-			for(long unsigned int x = 0; x < projectsPos.size(); x++)
-			{
-				if(temp.value == renameVals[x])
-					exists = true;
-			}
-			if(!exists)
-			{
-				for(long unsigned int l = 0; l < rel.myScheme.parameterList.size(); l++)
-				{
-					if(temp.value == rel.myScheme.parameterList[l])
-					{
-
-						projectsPos.push_back(l);
-						renameVals.push_back(temp.value);
-						break;
-					}
-				}
-
-			}
-
-		}
-	}
-
-
-	//Perform projections
-	newRelation = rel.project(projectsPos);
-
-	rename(query.name, renameVals, newRelation);
-
-
-	return newRelation;
+//==================================================================================================================
+string Interpreter::ToString() {
+    return theDatabase.ToStirng();
 }
-
-void interpreter::rename(string name, vector<string> param, relation &renameRel)
-{
-	scheme tempScheme(name);
-	tempScheme.addParameter(param);
-	renameRel.setScheme(tempScheme);
-}
-
-relation interpreter::join(relation a, relation b)
-{
-	relation product;
-	predicate joinProj;
-	scheme productScheme = a.myScheme;
-
-	productScheme.addParameter(b.myScheme.parameterList);
-	product.setScheme(productScheme);
-
-	for(set<Tuple>::iterator it = a.tupleList.begin(); it != a.tupleList.end(); ++it)
-	{
-		for(set<Tuple>::iterator jt = b.tupleList.begin(); jt != b.tupleList.end(); ++jt)
-		{
-			if(joinable((*it),(*jt),a.myScheme.parameterList, b.myScheme.parameterList))
-			{
-				Tuple newTuple = (*it);
-				newTuple.insert(newTuple.end(), (*jt).begin(), (*jt).end());
-				product.addTuple(newTuple);
-
-			}
-		}
-	}
-
-	vector<string>::iterator it = unique(productScheme.parameterList.begin(), productScheme.parameterList.end());
-	productScheme.parameterList.resize(distance(productScheme.parameterList.begin(),it));
-	joinProj = productScheme.toPred();
-
-
-	product = projectJoin(joinProj, product);
-
-	return product;
-}
-
-bool interpreter::joinable(Tuple a, Tuple b, vector<string> aParam, vector<string> bParam)
-{
-	for(long unsigned int i = 0; i < a.size(); i++)
-	{
-		for(long unsigned int j=0; j < b.size(); j++)
-		{
-			if(aParam[i] == bParam[j] && a[i] != b[j])
-				return false;
-		}
-	}
-
-	return true;
-}
-

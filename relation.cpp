@@ -1,113 +1,172 @@
-/*
- * relation.cpp
- *
- *  Created on: Mar 1, 2015
- *      Author: benjamin
- */
 
 #include "relation.h"
-#include "token.h"
-#include "parameter.h"
+//==================================================ADDED LAB 4====================================================//
+Relation Relation::Join(Relation relationToJoin) {
+    Relation NewRelation;
+    vector <int> relationInts, toAddInts;
+    NewRelation.TheScheme=TheScheme;
+   
+    for (unsigned int i = 0; i < relationToJoin.TheScheme.Size(); i++) {
+        bool isACopy = false;
+        //cout << "new==============================" << endl; 
+        for (unsigned int j = 0; j < TheScheme.Size(); j++) {
+            if (!isACopy) {
+                //cout << TheScheme.At(j) << "|" << relationToJoin.TheScheme.At(i) << endl; 
+                if (TheScheme.At(j) != relationToJoin.TheScheme.At(i)) {
+                    isACopy = false;
+                }
+                else {
+                    isACopy = true;
+                }
+            }
 
-void relation::setScheme(scheme s)
-{
-	myScheme = s;
+        }
+        if (!isACopy) {
+            NewRelation.TheScheme.Push_back(relationToJoin.TheScheme.At(i));
+            toAddInts.push_back(i);
+            //cout << "added:" << relationToJoin.TheScheme.At(i) << endl; 
+        }
+    }
+   // cout << "scheme: " <<NewRelation.TheScheme.Fake() << endl;
+    for (auto i: DemTuples) {
+        for (auto j: relationToJoin.DemTuples) {
+            if (isJoinable(i, j, TheScheme, relationToJoin.TheScheme)) {
+                Tuple newTuple = i;
+                for(unsigned int k = 0; k < toAddInts.size(); k++) {
+                    newTuple.push_back(j.at(toAddInts.at(k)));
+                }
+                NewRelation.AddTuple(newTuple);
+            }
+        }
+    }
+
+    return NewRelation;
+} 
+
+bool Relation::isJoinable(Tuple Tuple1, Tuple Tuple2Add, Scheme Scheme1, Scheme Scheme2Add) {
+    for (unsigned int i = 0; i < Scheme1.Size(); i++) {
+        for (unsigned int j = 0; j < Scheme2Add.Size(); j++) {
+            if (Scheme1.At(i) == Scheme2Add.At(j)) {
+                if (Tuple1.at(i)!= Tuple2Add.at(j)) {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
 }
 
-void relation::addTuple(Tuple t)
-{
-	tupleList.insert(t);
+bool Relation::Unite(Relation toUnite){
+    bool returnval = false;
+    for (auto i: toUnite.DemTuples) {
+        if(DemTuples.insert(i).second) {
+            returnval = true;
+            //ToString();
+            if (TheScheme.Size() != 0) {
+                cout << "  ";
+            }
+            for (unsigned int j = 0; j < TheScheme.Size(); j++) {
+                cout << TheScheme.At(j) + "=" + i.at(j);
+                if (j < TheScheme.Size()-1) {
+                    cout << ", ";
+                }
+            }
+            if (TheScheme.Size() != 0) {
+                cout << "\n";
+            }
+        }
+    }
+    return returnval;
+}
+//===================================================ADDED LAB 4==================================================//
+void Relation::AddTuple(Tuple tuples) {
+    DemTuples.insert(tuples);
+}
+void Relation::SetScheme(Scheme DemSchemes) {
+    TheScheme = DemSchemes;
+} 
+void Relation::SetName(string DatName){
+    name = DatName;
 }
 
-void relation::addTuples(relation tups)
-{
-	for(set<Tuple>::iterator it = tups.tupleList.begin(); it != tups.tupleList.end(); ++it)
-	{
-		addTuple(*it);
-	}
+Relation Relation::Select(int index, string value) {
+    Relation NewRelation;
+    NewRelation.SetName(name);
+    NewRelation.SetScheme(TheScheme);
+    
+    for (auto i: DemTuples) {
+        if (i.at(index) == value) {
+            NewRelation.AddTuple(i);
+        }
+    }
+    
+    return NewRelation;
 }
 
-string relation::toString()
-{
-	string output;
-	output = myScheme.toString() + "\n";
-	for(set<Tuple>::iterator it = tupleList.begin(); it != tupleList.end(); ++it)
-	{
-		output += (*it).toString() + "\n";
-	}
-	output += "\n";
 
-	return output;
+Relation Relation::Select(int indexOne, int indexTwo){
+    Relation NewRelation, NewRelation1;
+    NewRelation.SetName(name);
+    NewRelation.SetScheme(TheScheme);
+
+    for (auto i: DemTuples) {
+        if (i.at(indexOne) == i.at(indexTwo)) {
+            NewRelation.AddTuple(i);
+        }
+    }
+    return NewRelation;
 }
 
-relation relation::select(int pos, string val)
-{
-	relation temp;
-	temp.setScheme(myScheme);
-	for(set<Tuple>::iterator it = tupleList.begin(); it != tupleList.end(); ++it)
-	{
-
-		if((*it)[pos] == val)
-		{
-
-			temp.addTuple(*it);
-		}
-	}
-	return temp;
+Relation Relation::Project(vector<int> indicies){
+    //============================================//
+    /*
+        needs to be be altered for lab 4
+    */
+    //============================================//
+    Relation NewRelation; // not pass in something??
+    NewRelation.SetName(name);
+    for (auto i: DemTuples){
+        Tuple tempTuple;
+        for(unsigned j = 0; j < indicies.size(); j++) {
+            tempTuple.push_back(i.at(indicies.at(j)));
+        }
+        NewRelation.AddTuple(tempTuple);
+    }
+    Scheme TempScheme;
+    for (unsigned int i = 0; i < indicies.size(); i++ ){
+        TempScheme.Push_back(TheScheme.At(indicies.at(i)));
+    }
+    NewRelation.SetScheme(TempScheme);
+    return NewRelation;
 }
 
-relation relation::select(int pos1, int pos2)
-{
-	relation temp;
-	temp.setScheme(myScheme);
-	for(set<Tuple>::iterator it = tupleList.begin(); it != tupleList.end(); ++it)
-	{
-		if((*it)[pos1] == (*it)[pos2])
-		{
-			temp.addTuple(*it);
-		}
-	}
-	return temp;
+Relation Relation::Rename(vector<string> names){
+    Scheme John;
+    John.GetScheme(names);
+    Relation NewRelation;
+    NewRelation.SetName(name);
+    NewRelation.SetScheme(John);
+    for (auto i : DemTuples) {
+        NewRelation.AddTuple(i);
+    }
+    return NewRelation;
 }
 
-relation relation::project(vector<int> pos)
-{
-	relation newRel;
-	newRel.setScheme(myScheme);
-	if(!pos.empty())
-	{
-		for(set<Tuple>::iterator it = tupleList.begin(); it != tupleList.end(); ++it)
-		{
-			Tuple temp;
-			for(long unsigned int i = 0; i < pos.size(); i++)
-			{
-				temp.push_back((*it)[pos[i]]);
-			}
-			newRel.addTuple(temp);
-
-		}
-	}
-
-	return newRel;
+void Relation::ToString() { 
+    
+        for (auto i : DemTuples) {
+            if (TheScheme.Size() != 0) {
+                cout << "  ";
+            }
+            for (unsigned int j = 0; j < TheScheme.Size(); j++) {
+                cout << TheScheme.At(j) + "=" + i.at(j);
+                if (j < TheScheme.Size()-1) {
+                    cout << ", ";
+                }
+            }
+            if (TheScheme.Size() != 0) {
+                cout << "\n";
+            }
+        }
+        return;
 }
-
-int relation::getSize()
-{
-	return tupleList.size();
-}
-
-/*string relation::printResult()
-{
-	string output;
-	for(set<tuple>::iterator it = tupleList.begin(); it != tupleList.end(); ++it)
-	{
-		output += "  ";
-		for(int i = 0; i < myScheme.parameterList.size(); i++)
-		{
-			if(myScheme.parameterList[i] == ID)
-			{
-
-			}
-		}
-	}
-}*/

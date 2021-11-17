@@ -1,15 +1,16 @@
-/*
- * expression.h
- *
- *  Created on: Feb 8, 2015
- *      Author: benjamin
- */
+#include "token.h"
+#include "parameter.h"
+#include <vector>
 
-#ifndef EXPRESSION_H_
-#define EXPRESSION_H_
-
-
-
-
-
-#endif /* EXPRESSION_H_ */
+class Expression {
+public:
+    void SetRight(Parameter right);
+    void SetOperator(Parameter oper);
+    void SetLeft(Parameter left);
+    string GetExpression();
+    string ToString();
+private:
+    Parameter rightParam;
+    Parameter Operator;
+    Parameter leftParam;
+};

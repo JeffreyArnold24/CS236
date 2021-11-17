@@ -1,75 +1,32 @@
-/*
- * scheme.h
- *
- *  Created on: Feb 7, 2015
- *      Author: benjamin
- */
-
-#ifndef SCHEME_H_
-#define SCHEME_H_
+#pragma once
+using namespace std;
 #include <string>
 #include <vector>
-#include "predicate.h"
+#include <iostream>
 
-using namespace std;
+class Scheme{
+    public:
+    vector <string> values;
+    unsigned int Size() {
+        return values.size();
+    }
+    void Push_back(string addstring) {
+        values.push_back(addstring);
+        return;
+    }
+    void GetScheme(vector<string> john) {
+        values = john;
 
-class scheme
-{
-public:
-	scheme(string n)
-	{
-		name = n;
-	}
-	scheme(){}
-	~scheme(){}
-	string name;
-	vector<string> parameterList;
-	void addName(string n)
-	{
-		name = n;
-	}
-	void addParameter(string param)
-	{
-		parameterList.push_back(param);
-	}
-	void addParameter(vector<string> params)
-	{
-		parameterList.insert(parameterList.end(),params.begin(), params.end());
-	}
-	void editParameter(int pos, string val)
-	{
-		parameterList[pos] = val;
-	}
-	predicate toPred()
-	{
-		predicate temp(name);
-		for(long unsigned int i = 0; i < parameterList.size(); i++)
-		{
-			parameter tempParam;
-			tempParam.value = parameterList[i];
-			tempParam.type = ID;
-			temp.addParameter(tempParam);
-		}
+    }
+    string At(int i) {
+        return values.at(i);
+    }
 
-		return temp;
-	}
-
-
-	string toString()
-	{
-		string output;
-		output = name + "(";
-		for(long unsigned int i = 0; i < parameterList.size()-1; i++)
-		{
-			output = output + parameterList[i] + ",";
-		}
-		output += parameterList[parameterList.size()-1] + ")";
-
-		return output;
-	}
-
+    string Fake() {
+        string stringy;
+        for (unsigned int i = 0; i < values.size(); i ++) {
+            stringy += values.at(i);
+        }
+        return stringy;
+    }
 };
-
-
-
-#endif /* SCHEME_H_ */

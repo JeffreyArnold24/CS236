@@ -1,25 +1,17 @@
-/*
- * parameter.h
- *
- *  Created on: Feb 8, 2015
- *      Author: benjamin
- */
+#pragma once
+#include "string"
+using namespace std;
 
-#ifndef PARAMETER_H_
-#define PARAMETER_H_
-
-#include "token.h"
-
-class parameter
-{
-public:
-	parameter(){}
-	~parameter(){}
-	string value;
-	tokType type;
-
+class Parameter {
+    public:
+        void SetParam(string param);
+        string ToString();
+        void SetBool(bool trueOrFalse) {
+            boolString = trueOrFalse;
+        }
+        bool IsString() {
+            return boolString;
+        }
+        string theParameter; // Needs to be changed to string
+        bool boolString;
 };
-
-
-
-#endif /* PARAMETER_H_ */

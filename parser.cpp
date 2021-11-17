@@ -1,312 +1,544 @@
-/*
- * parser.cpp
- *
- *  Created on: Feb 7, 2015
- *      Author: benjamin
- */
 #include "parser.h"
-#include "rule.h"
-#include "parameter.h"
-#include <algorithm>
-#include <iostream>
 
-void parser::parse(string inputFile)
-{
-	lexer.scan(inputFile);
-	tokenList = lexer.getVector();
-	tok = tokenList[0];
-	tokenList.erase(tokenList.begin());
+Parser::Parser() {}
 
-	match(SCHEMES);
-	match(COLON);
-	parseScheme();
-	parseSchemeList();
+Parser::~Parser(){}
 
-	match(FACTS);
-	match(COLON);
-	parseFactList();
-	program.makeDomain();
+//PROJECT 3 ALLTERATIONS -----------------------------------------------------------------------------------------
+Datalog Parser::GetDatalog() {
+    return Everything;
+}
+//PROJECT 3 ALLTERATIONS -----------------------------------------------------------------------------------------
 
-	match(RULES);
-	match(COLON);
-	parseRuleList();
 
-	match(QUERIES);
-	match(COLON);
-	parseQuery();
-	parseQueryList();
-
-	schemesList = program.schemesList;
-	factsList = program.factsList;
-	domain = program.domain;
-	rulesList = program.rulesList;
-	queryList = program.queryList;
+bool Parser::DatalogProgram(queue<Token> Tokens) {
+    Parse(Tokens);
+    return fail;
 }
 
-void parser::match(tokType t)
-{
-	if(tok.type == t)
-	{
-		tok = tokenList[0];
-		tokenList.erase(tokenList.begin());
-	}
-
-	else
-		error();
+string Parser::ToString() {
+    if (fail != true) {
+        string thing;
+        cout << Everything.ToString();
+        return thing;
+    }
+    else {
+        string stringy;
+        return stringy;
+    }
 }
 
-void parser::error()
-{
-	cout << "Failure!\n  "
-		<< tok.print() << endl;
-	exit(EXIT_SUCCESS);
+Datalog Parser::Parse(queue<Token> Tokens) {
+    TokenQueue = Tokens;
+    vector<Predicate> Schemes;
+    ParseCheck(SCHEMES); //Schemes
+    ParseCheck(COLON);
+    Schemes.push_back(ParseScheme());
+    Schemes = ParseSchemeList(Schemes);
+    if (fail == false) {
+        Everything.SetSchemes(Schemes);
+        //cout << "Success! Schemes" << endl;/////////////////////////////////////
+    }
+    else {
+        return Everything;
+    }
+
+    if(fail == false) {
+        ParseCheck(FACTS);//Facts
+        ParseCheck(COLON);
+        vector<Predicate> parsedFacts; 
+        parsedFacts = ParseFactList(parsedFacts);
+        if (fail == false) {
+            Everything.SetFacts(parsedFacts);
+            Everything.SetDomain(Domain);
+            //cout << "Success! Facts" << endl;///////////////////////////////////////
+        }
+        else {
+            return Everything;
+    }
+    }
+    else {
+        return Everything;
+    }
+
+    if(fail == false) {
+        vector<Rule> Rules;
+        ParseCheck(RULES);//Rules
+        ParseCheck(COLON);
+        Rules = ParseRuleList(Rules);
+        if (fail == false) {
+            Everything.SetRules(Rules);
+            //cout << "Success! Rules" << endl;///////////////////////////////////////
+        }
+        else {
+            return Everything;
+        }
+    }
+    else {
+        return Everything;
+    }
+    if (fail == false) {
+        vector<Predicate> Queries;
+        ParseCheck(QUERIES);
+        ParseCheck(COLON);
+        Queries.push_back(ParseQuery());
+        Queries = ParseQueryList(Queries);
+        if ( fail == false) {
+            Everything.SetQueries(Queries);
+            //cout << "success! Queries" << endl;///////////////////////////////////////
+        }
+        else {
+            return Everything;
+    }
+    }
+    else {
+        return Everything;
+    }
+    if (fail == false) {
+        if (nextToken.GetType() == EOFa) {
+            //cout << "Success!" << endl;
+            return Everything;
+        }
+        else {
+            while (nextToken.GetType() != EOFa) {
+                thisToken = TokenQueue.front();
+                TokenQueue.pop();
+                nextToken = TokenQueue.front();
+            }
+            PrintFail(thisToken.GetLineNumber());
+            return Everything;
+        }
+    }
+    else {
+        return Everything;
+    }
 }
 
-void parser::toString()
-{
-
+Predicate Parser::ParseQuery() {
+    Predicate Query;
+    if (fail == false) {
+        Query = ParsePredicate();
+        ParseCheck(Q_MARK);
+        return Query;
+    }
+    else {
+        return Query;
+    }
 }
 
-void parser::parseScheme()
-{
-	//ID LEFT_PAREN ID idList RIGHT_PAREN
-	scheme newScheme(tok.value);
-	match(ID);
-	match(LEFT_PAREN);
-	newScheme.addParameter(tok.value);
-	match(ID);
-	newScheme.addParameter(idList());
-	match(RIGHT_PAREN);
-
-
-	program.addScheme(newScheme);
-
+vector<Predicate> Parser::ParseQueryList(vector<Predicate> Queries) {//lambda // NEEEEEEEDS WORK????????
+    if (fail == false) {
+        if (nextToken.GetType() != ID) {
+            return Queries;
+        }
+        /*I feel like there is a chance that something wrong is going on
+        like if the id but not the right thing*/
+        else {
+            Queries.push_back(ParseQuery());
+            Queries = ParseQueryList(Queries);
+            return Queries;
+        }
+    }
+    else {
+        return Queries;
+    }
 }
 
-void parser::parseSchemeList()
-{
-	if(tok.type != FACTS)
-	{
-		parseScheme();
-		parseSchemeList();
-	}
+vector<Rule> Parser::ParseRuleList(vector<Rule> RuleList) {// check for lambda
+    if(fail == false) {
+        if (nextToken.GetType() == QUERIES) {
+            return RuleList;
+        }
+        else {
+            RuleList.push_back(ParseRules());
+            RuleList = ParseRuleList(RuleList);
+            return RuleList;
+        }
+    }
+    else {
+        return RuleList;
+    }
 }
 
-void parser::parseFact()
-{
-	scheme newFact(tok.value);
-	match(ID);
-	match(LEFT_PAREN);
-	newFact.addParameter(tok.value);
-	match(STRING);
-	newFact.addParameter(stringList());
-	match(RIGHT_PAREN);
-	match(PERIOD);
-
-	program.addFact(newFact);
-	//domain.insert(domain.end(),newFact.parameterList.begin(), newFact.parameterList.end());
-
+Rule Parser::ParseRules() {
+    Rule theRule;
+    vector<Predicate> listOfRules;
+    Predicate rule;
+    if (fail == false) {
+        theRule.SetHeadPredicate(ParseHeadPredicate());
+        ParseCheck(COLON_DASH);
+        rule = ParsePredicate();
+        listOfRules.push_back(rule);
+        listOfRules = ParsePredicateList(listOfRules);
+        ParseCheck(PERIOD);
+        theRule.SetRule(listOfRules);
+        return theRule;
+    }
+    else {
+        return theRule;
+    }
 }
 
-void parser::parseFactList()
-{
-	if(tok.type != RULES)
-	{
-		parseFact();
-		parseFactList();
-	}
-
-
+vector<Predicate> Parser::ParseFactList(vector<Predicate> Facts) { // needs to check for lambda
+    //cout << "FactList" << endl;/////////////////////////////////////////////////////////
+    Predicate newFact;
+    if (fail == false) {
+        if (nextToken.GetType() == RULES) {
+            return Facts; 
+        }
+        else {
+            newFact = ParseFact();
+            Facts.push_back(newFact);
+            vector<Parameter> ParamList;
+            ParamList = newFact.ReturnVector();
+            for (unsigned int i = 0; i < ParamList.size(); i++) {
+                Domain.insert(ParamList.at(i).ToString());
+            }
+            Facts = ParseFactList(Facts);
+            return Facts;
+        }
+    }
+    else {
+        return Facts;
+    }
 }
 
-void parser::parseRuleList()
-{
-	if(tok.type != QUERIES)
-	{
-		parseRule();
-		parseRuleList();
-	}
+Predicate Parser::ParseFact() {
+    Predicate Facts;
+    if (fail == false) {
+        paramList.clear();
+        ParseCheck(ID);
+        Facts.SetName(thisToken.GetValue());
+        ParseCheck(LEFT_PAREN);
+        ParseCheck(STRING);
+        PushOnList(thisToken.GetValue(), true);
+        Domain.insert(thisToken.GetValue());
+        ParseStringList();
+        ParseCheck(RIGHT_PAREN);
+        ParseCheck(PERIOD);
+        for (unsigned int i = 0; i < paramList.size(); i++) {
+            Facts.PushPredicate(paramList.at(i));
+        }
+        return Facts;
+    }
+    else {
+        return Facts;
+    } 
 }
 
-void parser::parseRule()
-{
-	rule newRule;
-	newRule.addHead(headPredicate());
-	match(COLON_DASH);
-	newRule.addPred(parsePredicate());
-	newRule.addPred(parsePredicateList());
-	match(PERIOD);
-
-	program.addRule(newRule);
-
+void Parser::ParseStringList(){ //check for lambda
+    //cout << "string list" << endl;//////////////////////////////////////////////////////////
+    if (fail == false) {
+        if (nextToken.GetType() == COMMA) {
+            ParseCheck(COMMA);
+            ParseCheck(STRING);
+            PushOnList(thisToken.GetValue(), true);
+            ParseStringList();
+        }
+        else {
+            return;
+        }
+    }
+    else {
+        return;
+    }
 }
 
-predicate parser::headPredicate()
-{
-	predicate newHead(tok.value);
-	parameter initial;
-	vector<parameter> pList;
-	vector<string> temp;
-	match(ID);
-	match(LEFT_PAREN);
-	initial.value = tok.value;
-	initial.type = ID;
-	newHead.addParameter(initial);
-	match(ID);
-	temp = idList();
-	for(long unsigned int i = 0; i < temp.size(); i++)
-	{
-		parameter a;
-		a.value = temp[i];
-		a.type = ID;
-		pList.push_back(a);
-	}
-	newHead.addParameter(pList);
-	match(RIGHT_PAREN);
-
-	return newHead;
+Predicate Parser::ParseScheme() {
+    Predicate Schemes;
+    if (fail == false) {
+        paramList.clear();
+        ParseCheck(ID); ////////////////////////////////////////////////////////////////////
+        Schemes.SetName(thisToken.GetValue());
+        ParseCheck(LEFT_PAREN);
+        ParseCheck(ID);
+        PushOnList(thisToken.GetValue(), false);
+        ParseIDList();
+        ParseCheck(RIGHT_PAREN);
+        for (unsigned int i = 0; i < paramList.size(); i++) {
+            Schemes.PushPredicate(paramList.at(i));
+        }
+        //cout << Schemes.ToString() << endl;;
+        return Schemes;
+    }
+    else {
+        return Schemes;
+    }
 }
 
-predicate parser::parsePredicate()
-{
-	predicate newPred(tok.value);
-	match(ID);
-	match(LEFT_PAREN);
-	newPred.addParameter(parseParameter());
-	newPred.addParameter(parseParameterList());
-	match(RIGHT_PAREN);
-
-	return newPred;
+vector<Predicate> Parser::ParseSchemeList(vector<Predicate> Schemes) { //check for lambda??
+    Predicate newScheme; 
+    if (fail == false) {
+        if (nextToken.GetType() == FACTS) {
+            return Schemes;
+        }
+        else {
+            newScheme = ParseScheme();
+            Schemes.push_back(newScheme);
+            Schemes = ParseSchemeList(Schemes);
+            return Schemes;
+        }
+    }
+    else {
+        return Schemes;
+    }
 }
 
-vector<predicate> parser::parsePredicateList()
-{
-	vector<predicate> newPredList;
-	if(tok.type != PERIOD && tok.type != QUERIES)
-	{
-		match(COMMA);
-		newPredList.push_back(parsePredicate());
-		vector<predicate> temp = parsePredicateList();
-		newPredList.insert(newPredList.end(), temp.begin(), temp.end());
-	}
-
-	return newPredList;
+void Parser::ParseIDList() {//check for lambda???
+    //cout << "Id list" << endl;//////////////////////////////////////////
+    if (fail == false) {
+        if (nextToken.GetType() == COMMA) {
+            ParseCheck(COMMA);
+            ParseCheck(ID);
+            PushOnList(thisToken.GetValue(), false);
+            ParseIDList();
+        }
+        else {
+            return;
+        }
+    }
+    else {
+        return;
+    }
 }
 
-parameter parser::parseParameter()
-{
-	parameter newParam;
-	if(tok.type == STRING)
-	{
-		newParam.value = tok.value;
-		newParam.type = STRING;
-		match(STRING);
-	}
-	else if(tok.type == ID)
-	{
-		newParam.value = tok.value;
-		newParam.type = ID;
-		match(ID);
-	}
-	else
-	{
-
-		newParam.value = parseExpression();
-		newParam.value = ID;
-	}
-	return newParam;
+bool Parser::CheckNext(TokenType type) {
+    if (fail == false) {
+        if (nextToken.GetType() == type) {
+            return true;
+        }
+        else {
+            PrintFail(nextToken.GetLineNumber());
+            return false;
+        }
+    }
+    else {
+        return false;
+    }
 }
 
-vector<parameter> parser::parseParameterList()
-{
-	vector<parameter> newParamList;
-	if(tok.type != RIGHT_PAREN)
-	{
-		match(COMMA);
-		newParamList.push_back(parseParameter());
-		vector<parameter> temp = parseParameterList();
-		newParamList.insert(newParamList.end(), temp.begin(), temp.end());
-	}
-
-	return newParamList;
+bool Parser::ParseCheck(TokenType type) {
+    if (fail == false) { // syntax may need to be changed to fail != true
+        if (nextToken.GetType() != EOFa) {
+            thisToken = TokenQueue.front();
+            TokenQueue.pop();
+            nextToken = TokenQueue.front();
+            //cout << thisToken.toString() << endl;////////////////////////////////////////////////////////////////////////////
+            if (thisToken.GetType() == type) {
+                return true; 
+            }
+            else {
+                PrintFail(thisToken.GetLineNumber());
+                return false;
+            }
+        }
+        else {//////////////////////////////////////////////////////////////////////////
+            thisToken = TokenQueue.front();
+            //cout << "we are here" << endl;/////////////////////////////////////////////
+            //TokenQueue.pop();///////////////////////////////////////////////////////////
+            return true;////////////////////////////////////////////////////////////////
+        }
+    }
+    else {
+        if (nextToken.GetType() != EOFa) {
+            //cout << "we are here?" << endl;
+            thisToken = TokenQueue.front();
+            //cout << thisToken.toString() << endl;
+            TokenQueue.pop();
+            nextToken = TokenQueue.front();
+            //cout << "we are here?" << endl;
+        }
+        else {
+            thisToken = TokenQueue.front();
+            //cout << "we are here" << endl;
+        }
+        return false;
+    }
 }
 
-string parser::parseExpression()
-{
-	string exp = "(";
-	match(LEFT_PAREN);
-	exp += parseParameter().value + " ";
-	exp += parseOperator() + " ";
-	exp += parseParameter().value;
-	match(RIGHT_PAREN);
-	exp += ")";
-
-	return exp;
+void Parser::PrintFail(int i) {
+    cout << "Failure!" << "\n  (" << thisToken.TypeString() << ",\"" <<thisToken.GetValue() <<"\"," << i << ")" << endl;
+    fail = true;
+    return;
 }
 
-string parser::parseOperator()
-{
-	if(tok.type == ADD)
-	{
-		match(ADD);
-		return "+";
-	}
-	else if(tok.type == MULTIPLY)
-	{
-		match(MULTIPLY);
-		return "*";
-	}
-	else {
-		return 0;
-	}
+//Predicate Stuff
+Predicate Parser::ParseHeadPredicate() {
+    //cout << "Head predicate" << endl;////////////////////////////////////////////
+    Predicate headPredicate;
+    if (fail == false) {
+        paramList.clear();
+        ParseCheck(ID);
+        headPredicate.SetName(thisToken.GetValue());
+        ParseCheck(LEFT_PAREN);
+        ParseCheck(ID);
+        PushOnList(thisToken.GetValue(), false);
+        ParseIDList();
+        ParseCheck(RIGHT_PAREN);
+        for (unsigned int i = 0; i < paramList.size(); i++) {
+            headPredicate.PushPredicate(paramList.at(i));
+        }
+        return headPredicate;
+    }
+    else {
+        return headPredicate;
+    }
 }
 
-void parser::parseQuery()
-{
-	program.addQuery(parsePredicate());
-	match(Q_MARK);
+vector<Predicate> Parser::ParsePredicateList(vector<Predicate> list) { //lamda
+    //cout << "PredicateList" << endl;///////////////////////////////////////////////
+    if (fail == false) {
+        if (nextToken.GetType() == COMMA) {
+            ParseCheck(COMMA);
+            list.push_back(ParsePredicate());
+            list = ParsePredicateList(list);
+            return list;
+        }
+        else {
+            return list;
+        }
+    }
+    else {
+        return list;
+    }
 }
 
-void parser::parseQueryList()
-{
-	if(tok.type != END)
-	{
-		parseQuery();
-		parseQueryList();
-	}
-
+Predicate Parser::ParsePredicate(){
+    //cout << "Predicate" << endl;/////////////////////////////////////////////////////
+    Predicate Predicates;
+    Parameter newParam;
+    if (fail == false) {
+        paramList.clear();
+        ParseCheck(ID);
+        Predicates.SetName(thisToken.GetValue());
+        //PushOnList(thisToken.GetValue());
+        ParseCheck(LEFT_PAREN);
+        newParam = ParseParameter();
+        PushOnList(newParam.ToString(), newParam.IsString());
+        ParseParameterList();
+        ParseCheck(RIGHT_PAREN);
+        for (unsigned int i = 0; i < paramList.size(); i++) {
+            Predicates.PushPredicate(paramList.at(i));
+        }
+        return Predicates;
+    }
+    else {
+        return Predicates;
+    }
 }
 
-vector<string> parser::idList()
-{
-	vector<string> myList;		//list of parameters to return
-
-	//COMMA ID idList | lambda
-	if(tok.type != RIGHT_PAREN)
-	{
-		match(COMMA);
-		myList.push_back(tok.value);
-		match(ID);
-		vector<string> temp = idList();
-		myList.insert(myList.end(), temp.begin(), temp.end());	//adds whatever returns from recursion
-	}
-
-	return myList;
-
+void Parser::PushOnList(string token, bool StringAlt) {
+    Parameter newParam;
+    if (thisToken.GetValue() != "") {
+        newParam.SetParam(token);
+        newParam.SetBool(StringAlt);
+        paramList.push_back(newParam);
+    }
+    else {
+    }
+    return;
 }
 
-vector<string> parser::stringList()
-{
-	vector<string> myList;		//list of parameters to return
+Parameter Parser::ParseParameter() {
+    //cout << "Parameter" << endl;//////////////////////////////////////////////////////
+    Parameter newParam;
+    if (fail == false) {
+        Token toSend = nextToken;
+        if (nextToken.GetType() == STRING) {
+            //cout << "string";
+            ParseCheck(STRING);
+            newParam.SetParam(thisToken.GetValue());
+            newParam.SetBool(true);
+           // Alteration in lab 3 made above--------^^^^--------------------------------------------------------------------------------------            return newParam;
+            return newParam;
+        }   
+        else if (nextToken.GetType() == ID) {
+            //cout << "ID";
+            ParseCheck(ID);
+            newParam.SetParam(thisToken.GetValue());
+            newParam.SetBool(false);
+            return newParam;
+        }
+        else if (nextToken.GetType() == LEFT_PAREN) {
+            string stringy;
+            stringy = ParseExpression();
+            stringy = "(" + stringy + ")";
+            newParam.SetParam(stringy);
+            //CheckNext(RIGHT_PAREN);////////////////////
+            //cout << newParam.ToString();
+            return newParam;
+        }
+        //check --------------------------------------------------------------------------------------------
+        else {
+            thisToken = nextToken;
+            CheckNext(ERROR);/////////////////////////////////////////////////////////////////////////////////////////
+            return newParam;
+        }
+    }
+    else {
+        return newParam;
+    }
+}
 
-	if(tok.type != RIGHT_PAREN)
-	{
-		match(COMMA);
-		myList.push_back(tok.value);
-		match(STRING);
-		vector<string> temp = stringList();
-		myList.insert(myList.end(), temp.begin(), temp.end());	//adds whatever returns from recursion
-	}
+void Parser::ParseParameterList() { // lambda
+    //cout << "Parameter List" << endl;/////////////////////////////////////////////////////////
+    if (fail == false) {
+        if (nextToken.GetType() == RIGHT_PAREN) {
+            return;
+        }
+        else {
+            Parameter newParam;
+            ParseCheck(COMMA);
+            newParam = ParseParameter();
+            PushOnList(newParam.ToString(), newParam.IsString());
+            ParseParameterList();
+            return;
+        }
+    }
+    else {
+        return;
+    }
+}
 
-	return myList;
+string Parser::ParseExpression() {
+    //cout << "Expression" << endl;
+    if (fail == false) {
+        Expression theExpression;
+        Parameter newParam;
+
+        ParseCheck(LEFT_PAREN);
+        newParam = ParseParameter();
+        theExpression.SetRight(newParam);
+        newParam.SetParam(ParseOperator().GetValue());
+        theExpression.SetOperator(newParam);
+        newParam = ParseParameter();
+        theExpression.SetLeft(newParam);
+        //ParseParameter();
+        ParseCheck(RIGHT_PAREN);
+
+        return theExpression.GetExpression();
+    }
+    else {
+        string list;
+        return list;
+    }
+}
+
+Token Parser::ParseOperator() {
+    //cout << "Operator" << endl;/////////////////////////////////////////////////////////////////////
+    if (fail == false) {
+        if (nextToken.GetType() == ADD) {
+            ParseCheck(ADD);
+        }
+        else if (nextToken.GetType() == MULTIPLY) {
+            ParseCheck(MULTIPLY);
+        }
+        else {
+            ParseCheck(MULTIPLY);
+        }
+        return thisToken;
+    }
+    else {
+        return thisToken;
+    }
 }

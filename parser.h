@@ -1,64 +1,52 @@
-/*
- * parser.h
- *
- *  Created on: Feb 7, 2015
- *      Author: benjamin
- */
+#pragma once
+#include "token.h"
+#include "datalog.h"
+#include "expression.h"
+#include <queue>
 
-#ifndef PARSER_H_
-#define PARSER_H_
-#include "scanner.h"
-#include "scheme.h"
-#include "datalogProgram.h"
+class Parser {
+    public:
+        Parser();
+        ~Parser();
 
-class parser
-{
-public:
-	parser(){}
-	~parser(){}
+        bool DatalogProgram(queue<Token> Tokens);
+        string ToString();
+//__________________________________PROJECT 3 ALLTERATIONS (below)____________________________________________________________________________________
+        Datalog GetDatalog();
+//__________________________________PREJECT 3 ALLTERATIONS (above)____________________________________________________________________________________
+protected:
+        void PrintFail(int i = 0);
+        bool CheckNext(TokenType type);
 
-//functions
-	void parse(string inputFile);
-	token getToken();
-	void match(tokType t);
-	void error();
-	void toString();
-	void parseScheme();
-	void parseSchemeList();
-	void parseFactList();
-	void parseFact();
-	void parseRuleList();
-	void parseRule();
-	predicate headPredicate();
-	predicate parsePredicate();
-	vector<predicate> parsePredicateList();
-	parameter parseParameter();
-	vector<parameter> parseParameterList();
-	string parseExpression();
-	string parseOperator();
-	void parseQuery();
-	void parseQueryList();
-	vector<string> idList();
-	vector<string> stringList();
+        Datalog Parse(queue<Token> Tokens);
+        bool ParseCheck(TokenType type);
+        Predicate ParseScheme();
+        vector<Predicate> ParseSchemeList(vector<Predicate> Schemes);
+        void ParseIDList();
+        vector<Predicate> ParseFactList(vector<Predicate> Facts);
+        Predicate ParseFact();
+        void ParseStringList();
+        vector<Rule> ParseRuleList(vector<Rule> Rules);
+        Rule ParseRules();
+        Predicate ParseQuery();
+        vector<Predicate> ParseQueryList(vector<Predicate> Queries);
 
-//variables
-	token tok;
-	vector<scheme> schemesList;
-	vector<scheme> factsList;
-	vector<string> domain;
-	vector<rule> rulesList;
-	vector<predicate> queryList;
+        Predicate ParseHeadPredicate();
+        Predicate ParsePredicate();
+        vector<Predicate> ParsePredicateList(vector<Predicate>);
 
-private:
-	vector<token> tokenList;
-	datalogProgram program;
-	scanner lexer;
+        Parameter ParseParameter();
+        void ParseParameterList();
+        string ParseExpression();
+        Token ParseOperator();
 
+        void PushOnList(string token, bool torf);
+//VARIABLES
+        vector<Parameter> paramList;
+        queue<Token> TokenQueue;
+        Token thisToken;
+        Token nextToken;
+        bool fail = false;
+        Datalog Everything;
+        set<string> Domain;
 };
-
-
-
-
-
-
-#endif /* PARSER_H_ */
