@@ -256,9 +256,9 @@ string parser::parseOperator()
 		match(MULTIPLY);
 		return "*";
 	}
-	/*else {
-		error();
-	}*/
+	else {
+		return 0;
+	}
 }
 
 void parser::parseQuery()
