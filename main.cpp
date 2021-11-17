@@ -1,25 +1,19 @@
-#include "Parser.h"
-#include<fstream>
-using namespace std;
+/*
+ * main.cpp
+ *
+ *  Created on: Mar 1, 2015
+ *      Author: benjamin
+ */
 
-int main(int argc, char* argv[]) {
+#include "interpreter.h"
 
-    string filename = argv[1];
-    Parser p;
-    /*bool wasASuccess = p.Parse(filename);
-    if (wasASuccess) {
-        cout << "Success!" << endl;
-        p.readInput(filename);
-        p.sortAndErase();
-        cout << p.printTokens();
+int main(int argc, char* argv[])
+{
+	interpreter myInt;
+	myInt.start(argv[1]);
 
-    }
-    else {
-        cout << "Failure!" << endl;
-        cout << "  " << p.printError() << endl;
-    }*/
-    p.readInput(filename);
-    cout << p.printTokens();
-    
-    return 0;
+	return 0;
 }
+
+
+
